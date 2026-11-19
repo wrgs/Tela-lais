@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="TV da Laís" />
-  <meta name="theme-color" content="#0F172A" />
+  <meta name="theme-color" content="#1e3a5f" />
   <title>Controle de TV da Laís</title>
 
-  <!-- Ícone Apple Touch Icon SVG inline de uma TV simpática para a Tela de Início do iPhone -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='tvbg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230F172A'/%3E%3Cstop offset='100%25' stop-color='%23312E81'/%3E%3C/linearGradient%3E%3ClinearGradient id='tvscreen' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F97316'/%3E%3Cstop offset='100%25' stop-color='%23F59E0B'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='40' fill='url(%23tvbg)'/%3E%3Cpath d='M64 34 L90 56 L116 34' stroke='%23FDBA74' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='64' cy='34' r='5' fill='%23F97316'/%3E%3Ccircle cx='116' cy='34' r='5' fill='%23F97316'/%3E%3Crect x='30' y='54' width='120' height='88' rx='22' fill='%23FFFFFF'/%3E%3Crect x='42' y='66' width='76' height='64' rx='14' fill='url(%23tvscreen)'/%3E%3Cpath d='M73 86 L95 98 L73 110 Z' fill='%23FFFFFF'/%3E%3Ccircle cx='134' cy='84' r='6' fill='%23CBD5E1'/%3E%3Ccircle cx='134' cy='104' r='6' fill='%23F97316'/%3E%3Crect x='127' y='118' width='14' height='5' rx='2.5' fill='%2394A3B8'/%3E%3C/svg%3E" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231E293B'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='34'%3E%F0%9F%93%BA%3C/text%3E%3C/svg%3E" />
+  <!-- Ícone Apple Touch Icon SVG de TV em azul-ardósia (#1e3a5f) e coral (#e86f51) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='tvbg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%231e3a5f'/%3E%3Cstop offset='100%25' stop-color='%23152a45'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='40' fill='url(%23tvbg)'/%3E%3Cpath d='M62 32 L90 55 L118 32' stroke='%23e86f51' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='62' cy='32' r='5.5' fill='%23e86f51'/%3E%3Ccircle cx='118' cy='32' r='5.5' fill='%23e86f51'/%3E%3Crect x='28' y='53' width='124' height='90' rx='22' fill='%23FFFFFF'/%3E%3Crect x='40' y='65' width='78' height='66' rx='14' fill='%23e86f51'/%3E%3Cpath d='M72 86 L95 98 L72 110 Z' fill='%23FFFFFF'/%3E%3Ccircle cx='135' cy='84' r='6.5' fill='%231e3a5f'/%3E%3Ccircle cx='135' cy='104' r='6.5' fill='%23e86f51'/%3E%3Crect x='128' y='119' width='14' height='5' rx='2.5' fill='%2394A3B8'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e3a5f'/%3E%3Crect x='12' y='18' width='40' height='30' rx='8' fill='%23e86f51'/%3E%3Cpath d='M28 27 L39 33 L28 39 Z' fill='%23FFFFFF'/%3E%3C/svg%3E" />
 
   <!-- Fonte Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,13 +28,25 @@
         extend: {
           fontFamily: {
             sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            slateBlue: {
+              DEFAULT: '#1e3a5f',
+              dark: '#152a45',
+              light: '#2b5080',
+            },
+            coral: {
+              DEFAULT: '#e86f51',
+              dark: '#d45a3c',
+              soft: '#fdf1ee',
+            }
           }
         }
       }
     };
   </script>
 
-  <!-- Chart.js para gráficos responsivos -->
+  <!-- Chart.js via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
   <style>
@@ -44,14 +56,14 @@
     }
 
     html, body {
-      background-color: #F4F6FA;
+      background-color: #F3F6FA;
       color: #0F172A;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
       overscroll-behavior-y: none;
     }
 
-    /* Evita zoom automático do Safari no iPhone ao focar campos */
+    /* Evita zoom automático do Safari no iPhone ao tocar em inputs */
     input, select, textarea {
       font-size: 16px !important;
     }
@@ -68,15 +80,6 @@
       padding-bottom: calc(96px + var(--sab));
     }
 
-    /* Oculta barra de rolagem horizontal em carrosséis de chips */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
     @keyframes fadeSlide {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
@@ -87,7 +90,7 @@
     }
 
     /* ===================================================================== */
-    /* ESTILOS DE IMPRESSÃO / SALVAR PDF (@media print)                      */
+    /* ESTILOS DE IMPRESSÃO / EXPORTAR PDF (@media print)                    */
     /* ===================================================================== */
     @media print {
       @page {
@@ -120,7 +123,7 @@
 
       #print-report-header {
         display: block !important;
-        border-bottom: 2px solid #0F172A;
+        border-bottom: 2px solid #1e3a5f;
         padding-bottom: 12px;
         margin-bottom: 16px;
       }
@@ -133,29 +136,29 @@
     }
   </style>
 </head>
-<body class="min-h-screen antialiased selection:bg-orange-100">
+<body class="min-h-screen antialiased selection:bg-[#fdf1ee]">
 
   <!-- Toast Flutuante -->
   <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none transition-all duration-300 opacity-0 -translate-y-4">
-    <div class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700/80 flex items-center gap-3 text-sm font-medium">
+    <div class="bg-[#1e3a5f] text-white px-4 py-3 rounded-2xl shadow-xl border border-white/15 flex items-center gap-3 text-sm font-medium">
       <span id="toast-icon" class="text-base">✅</span>
       <span id="toast-text" class="flex-1">Pronto!</span>
     </div>
   </div>
 
-  <!-- Cabeçalho Superior Fixo em Azul-Ardósia/Índigo Profundo (compatível com black-translucent no iPhone) -->
-  <header class="sticky top-0 z-30 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md safe-top">
+  <!-- Cabeçalho Superior Fixo em Azul-Ardósia (#1e3a5f) -->
+  <header class="sticky top-0 z-30 bg-gradient-to-r from-[#1e3a5f] via-[#244672] to-[#152a45] text-white shadow-md safe-top">
     <div class="max-w-lg mx-auto px-4 pb-3.5 flex items-center justify-between gap-2">
-      <!-- Identidade + Status + Código da Família -->
+      <!-- Título + Status da Nuvem + Código da Família -->
       <div class="min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
-          <h1 class="text-lg font-extrabold tracking-tight text-white truncate flex items-center gap-1.5">
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white truncate flex items-center gap-1.5">
             <span>📺</span>
-            <span>TV da Laís</span>
+            <span>Controle de TV da Laís</span>
           </h1>
           <span
             id="sync-status-pill"
-            class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30"
+            class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-100 border border-amber-300/30"
           >
             🟡 Conectando...
           </span>
@@ -165,24 +168,24 @@
           <button
             type="button"
             onclick="openFamilyCodeModal()"
-            class="inline-flex items-center gap-1 text-[11px] font-bold text-orange-200 bg-white/10 hover:bg-white/15 border border-white/15 px-2.5 py-0.5 rounded-lg transition-colors"
+            class="inline-flex items-center gap-1 text-[11px] font-bold text-[#ffd6cc] bg-white/10 hover:bg-white/15 border border-white/15 px-2.5 py-0.5 rounded-lg transition-colors"
             title="Configurar código de sincronização da família"
           >
             <span>🔑</span>
             <span id="header-family-code">LAIS-HOME</span>
-            <span class="text-orange-300/80">✎</span>
+            <span class="text-white/70">✎</span>
           </button>
-          <span class="text-[11px] text-slate-400 hidden sm:inline">Tempo de tela compartilhado</span>
+          <span class="text-[11px] text-slate-300 hidden sm:inline">Sincronizado entre Pai e Mãe</span>
         </div>
       </div>
 
-      <!-- Alternador de Perfil por Celular: Pai ou Mãe -->
-      <div class="bg-slate-800/90 p-1 rounded-xl flex items-center shrink-0 border border-slate-700" role="group" aria-label="Quem está registrando">
+      <!-- Seletor Rápido de Perfil: Pai / Mãe -->
+      <div class="bg-[#13263e] p-1 rounded-xl flex items-center shrink-0 border border-white/10" role="group" aria-label="Quem está registrando">
         <button
           type="button"
           id="profile-btn-pai"
           onclick="setProfile('Pai')"
-          class="px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xs"
+          class="px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 bg-[#e86f51] text-white shadow-xs"
         >
           <span>👨</span>
           <span>Pai</span>
@@ -214,7 +217,7 @@
           <label for="reg-date-input" class="text-xs font-bold uppercase tracking-wider text-slate-400">
             Data em que assistiu
           </label>
-          <span id="reg-date-human" class="text-xs font-extrabold text-orange-700 bg-orange-50 border border-orange-200/70 px-2.5 py-0.5 rounded-full">
+          <span id="reg-date-human" class="text-xs font-extrabold text-[#1e3a5f] bg-[#1e3a5f]/10 px-2.5 py-0.5 rounded-full">
             Hoje
           </span>
         </div>
@@ -224,7 +227,7 @@
             type="button"
             id="btn-date-today"
             onclick="setQuickDate(0)"
-            class="px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 text-white shadow-xs transition-all shrink-0"
+            class="px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-[#1e3a5f] text-white shadow-xs transition-all shrink-0"
           >
             Hoje
           </button>
@@ -240,16 +243,16 @@
             type="date"
             id="reg-date-input"
             onchange="handleDateInputChange(this.value)"
-            class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+            class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/30"
           />
         </div>
       </div>
 
-      <!-- Card 2: Vídeo / Programa + Sugestões Inteligentes + Categoria -->
-      <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3.5">
+      <!-- Card 2: Nome do Vídeo / Desenho + 8 Botões Rápidos -->
+      <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div>
           <label for="reg-video-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-            Qual vídeo ou programa ela assistiu? *
+            Qual vídeo ou desenho ela assistiu? *
           </label>
           <div class="relative">
             <input
@@ -257,46 +260,37 @@
               id="reg-video-input"
               maxlength="90"
               oninput="handleRegVideoInput()"
-              placeholder="Ex.: Daniel o tigre, Luna, Kipper..."
-              class="w-full bg-slate-50 border-2 border-slate-200 focus:border-orange-500 rounded-2xl px-4 py-3.5 pr-10 text-sm font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 focus:outline-none transition-colors"
+              placeholder="Digite ou toque em um desenho abaixo..."
+              class="w-full bg-slate-50 border-2 border-slate-200 focus:border-[#1e3a5f] rounded-2xl px-4 py-3.5 pr-11 text-sm font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 focus:outline-none transition-colors"
             />
             <button
               type="button"
               onclick="clearVideoInput()"
-              class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 text-xs font-bold flex items-center justify-center"
-              title="Limpar nome do vídeo"
+              class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-600 text-xs font-extrabold flex items-center justify-center"
+              title="Limpar vídeo"
+              aria-label="Limpar nome do vídeo"
             >
               ✕
             </button>
           </div>
         </div>
 
-        <!-- Desenhos / Vídeos Mais Assistidos com 1 toque -->
+        <!-- 8 Desenhos Mais Assistidos -->
         <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-[11px] font-bold text-slate-400">⚡ Desenhos mais assistidos (1 toque):</span>
-          </div>
+          <span class="block text-[11px] font-bold text-slate-400 mb-2">
+            ⚡ Desenhos mais assistidos (toque para preencher):
+          </span>
           <div id="reg-video-suggestions" class="flex flex-wrap gap-1.5">
             <!-- Chips renderizados via JS -->
           </div>
         </div>
-
-        <!-- Seletor de Categoria / Idioma em Pílulas -->
-        <div class="pt-1 border-t border-slate-100">
-          <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Categoria / Idioma
-          </span>
-          <div id="reg-category-pills" class="flex flex-wrap gap-1.5">
-            <!-- Pílulas renderizadas via JS -->
-          </div>
-        </div>
       </div>
 
-      <!-- Card 3: Minutos Assistidos + Botão Salvar -->
+      <!-- Card 3: Duração em Minutos + 10 Botões Rápidos + Salvar Registro -->
       <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3.5">
         <div class="flex items-center justify-between">
           <label for="reg-minutes-input" class="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Minutos Assistidos *
+            Duração em Minutos *
           </label>
           <button
             type="button"
@@ -307,12 +301,12 @@
           </button>
         </div>
 
-        <!-- Botões Rápidos de Minutos Mais Usados -->
+        <!-- 10 Botões Rápidos de Minutos -->
         <div id="reg-quick-minutes-grid" class="grid grid-cols-5 gap-1.5">
           <!-- Renderizado via JS -->
         </div>
 
-        <!-- Campo Numérico de Minutos (aceita vírgula ou ponto, ex.: 1,5) -->
+        <!-- Campo Numérico de Minutos -->
         <div>
           <div class="relative">
             <input
@@ -321,42 +315,42 @@
               inputmode="decimal"
               oninput="handleMinutesManualInput()"
               placeholder="0"
-              class="w-full h-14 rounded-2xl bg-slate-50 border border-slate-200 text-center text-2xl font-extrabold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+              class="w-full h-14 rounded-2xl bg-slate-50 border border-slate-200 text-center text-2xl font-extrabold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#e86f51]/40"
             />
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold uppercase text-slate-400 pointer-events-none">
               minutos
             </span>
           </div>
           <p id="reg-minutes-caption" class="text-xs font-medium text-slate-400 text-center mt-1.5">
-            Selecione um atalho acima ou digite os minutos (ex.: 1,5 ou 10)
+            ⏱️ Duração: 0m
           </p>
         </div>
 
-        <!-- Botão Principal Salvar Registro de TV -->
+        <!-- Botão Principal Salvar Registro -->
         <button
           type="button"
           id="btn-save-tv"
           onclick="saveTvRecord()"
-          class="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-extrabold text-base shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2"
+          class="w-full py-4 rounded-2xl bg-[#e86f51] hover:bg-[#d45a3c] active:scale-[0.98] text-white font-extrabold text-base shadow-md shadow-[#e86f51]/25 transition-all flex items-center justify-center gap-2"
         >
           <span>📺</span>
-          <span id="btn-save-tv-text">Salvar Registro de TV (👨 Pai)</span>
+          <span id="btn-save-tv-text">Salvar Registro</span>
         </button>
       </div>
 
-      <!-- Card Resumo do Dia Selecionado + Lista Cronológica -->
+      <!-- Resumo do Dia Selecionado + Lista de Registros -->
       <div class="pt-1 space-y-3">
-        <div class="bg-gradient-to-r from-slate-800 to-indigo-950 text-white rounded-3xl p-4 shadow-xs flex items-center justify-between gap-3">
+        <div class="bg-[#1e3a5f] text-white rounded-3xl p-4 shadow-xs flex items-center justify-between gap-3">
           <div>
-            <p id="day-summary-label" class="text-xs font-bold uppercase tracking-wider text-orange-300">
-              Resumo de Hoje
+            <p id="day-summary-label" class="text-xs font-bold uppercase tracking-wider text-[#ffb8a6]">
+              Total no dia
             </p>
             <p id="day-summary-total" class="text-2xl font-extrabold mt-0.5">
-              0 min <span class="text-sm font-semibold text-slate-300">(0h 00m)</span>
+              0m
             </p>
           </div>
           <div class="text-right">
-            <span id="day-summary-count-badge" class="inline-block px-3 py-1.5 rounded-2xl bg-white/10 border border-white/15 text-xs font-extrabold text-amber-200">
+            <span id="day-summary-count-badge" class="inline-block px-3 py-1.5 rounded-2xl bg-white/10 border border-white/15 text-xs font-extrabold text-white">
               0 vídeos
             </span>
           </div>
@@ -373,72 +367,64 @@
     <!-- =================================================================== -->
     <section id="view-cronometro" class="hidden space-y-4 panel-enter">
 
-      <!-- Card Vídeo e Categoria em Andamento -->
-      <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3.5">
+      <!-- Card Vídeo/Desenho + 8 Botões Rápidos -->
+      <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div>
           <label for="sw-video-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-            Qual vídeo está passando agora?
+            Qual vídeo ou desenho está passando?
           </label>
-          <input
-            type="text"
-            id="sw-video-input"
-            maxlength="90"
-            oninput="handleSwVideoInput()"
-            placeholder="Ex.: Daniel o tigre, Luna, Kipper..."
-            class="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 rounded-2xl px-4 py-3 text-sm font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 focus:outline-none"
-          />
+          <div class="relative">
+            <input
+              type="text"
+              id="sw-video-input"
+              maxlength="90"
+              oninput="handleSwVideoInput()"
+              placeholder="Digite ou toque em um desenho abaixo..."
+              class="w-full bg-slate-50 border-2 border-slate-200 focus:border-[#1e3a5f] rounded-2xl px-4 py-3 pr-11 text-sm font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 focus:outline-none transition-colors"
+            />
+            <button
+              type="button"
+              onclick="clearSwVideoInput()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-600 text-xs font-extrabold flex items-center justify-center"
+              title="Limpar vídeo"
+              aria-label="Limpar vídeo no cronômetro"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        <!-- Chips rápidos no cronômetro -->
+        <!-- 8 Desenhos Mais Assistidos -->
         <div id="sw-video-suggestions" class="flex flex-wrap gap-1.5">
           <!-- Renderizado via JS -->
         </div>
-
-        <!-- Pílulas de Categoria -->
-        <div class="pt-1 border-t border-slate-100">
-          <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Categoria / Idioma
-          </span>
-          <div id="sw-category-pills" class="flex flex-wrap gap-1.5">
-            <!-- Renderizado via JS -->
-          </div>
-        </div>
       </div>
 
-      <!-- Painel Digital HH:MM:SS -->
+      <!-- Painel Digital do Cronômetro -->
       <div class="bg-white rounded-3xl p-6 shadow-xs border border-slate-200/80 text-center space-y-5">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 text-[#1e3a5f] text-xs font-bold">
           <span id="sw-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
           <span id="sw-status-label">Aguardando início</span>
         </div>
 
         <div class="py-1">
-          <div id="sw-clock-display" class="text-5xl sm:text-6xl font-extrabold tracking-tight tabular-nums text-slate-900">
+          <div id="sw-clock-display" class="text-5xl sm:text-6xl font-extrabold tracking-tight tabular-nums text-[#1e3a5f]">
             00:00:00
           </div>
-          <p id="sw-calculated-mins" class="text-xs font-extrabold text-orange-600 mt-2">
-            0 minutos calculados
+          <p id="sw-calculated-mins" class="text-xs font-extrabold text-[#e86f51] mt-2">
+            0m acumulados
           </p>
         </div>
 
-        <!-- Botões Iniciar, Pausar, Zerar -->
-        <div class="grid grid-cols-3 gap-2.5">
+        <!-- Botões Iniciar / Pausar & Zerar -->
+        <div class="grid grid-cols-2 gap-2.5">
           <button
             type="button"
-            id="btn-timer-start"
-            onclick="startTimer()"
-            class="py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all"
+            id="btn-timer-toggle"
+            onclick="toggleTimer()"
+            class="py-3.5 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all"
           >
-            ▶ Iniciar
-          </button>
-          <button
-            type="button"
-            id="btn-timer-pause"
-            onclick="pauseTimer()"
-            disabled
-            class="py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all opacity-45"
-          >
-            ⏸ Pausar
+            ▶ Iniciar / Pausar
           </button>
           <button
             type="button"
@@ -455,14 +441,14 @@
           type="button"
           id="btn-timer-save"
           onclick="saveTimerRecord()"
-          class="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-[0.98] text-white font-extrabold text-base shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-2"
+          class="w-full py-4 rounded-2xl bg-[#e86f51] hover:bg-[#d45a3c] active:scale-[0.98] text-white font-extrabold text-base shadow-md shadow-[#e86f51]/25 transition-all flex items-center justify-center gap-2"
         >
           <span>📥</span>
-          <span id="btn-timer-save-label">Salvar no Diário (Hoje)</span>
+          <span id="btn-timer-save-label">Salvar no Diário</span>
         </button>
 
         <p class="text-[11px] text-slate-400 leading-relaxed">
-          O cronômetro usa o relógio real do iPhone e continua contando com exatidão mesmo se a tela bloquear.
+          O cronômetro usa o relógio do aparelho e continua contando com exatidão mesmo se a tela do iPhone bloquear.
         </p>
       </div>
     </section>
@@ -476,7 +462,7 @@
       <div id="print-report-header" class="hidden">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900">Relatório de Tempo de Tela — Laís</h1>
+            <h1 class="text-2xl font-extrabold text-[#1e3a5f]">Relatório de Tempo de TV — Laís</h1>
             <p id="print-period-subtitle" class="text-sm font-semibold text-slate-600 mt-1">Período</p>
           </div>
           <div class="text-right text-xs text-slate-500">
@@ -486,13 +472,13 @@
         </div>
       </div>
 
-      <!-- Alternador Segmentado: Diário / Semanal / Mensal -->
+      <!-- Seletor de Período: Diário / Semanal / Mensal -->
       <div class="no-print bg-slate-200/80 p-1 rounded-2xl grid grid-cols-3 gap-1">
         <button
           type="button"
           id="rep-mode-diario"
           onclick="setReportMode('diario')"
-          class="py-2.5 rounded-xl text-xs font-extrabold bg-white text-slate-900 shadow-xs transition-all"
+          class="py-2.5 rounded-xl text-xs font-extrabold bg-white text-[#1e3a5f] shadow-xs transition-all"
         >
           Diário
         </button>
@@ -519,10 +505,10 @@
         <button
           type="button"
           onclick="navigateReportPeriod(-1)"
-          class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-700 text-lg font-extrabold"
+          class="px-3 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-[#1e3a5f] text-xs font-extrabold shrink-0"
           aria-label="Período anterior"
         >
-          ‹
+          ‹ Anterior
         </button>
 
         <div class="text-center flex-1 min-w-0">
@@ -531,7 +517,7 @@
             type="button"
             id="btn-rep-jump-current"
             onclick="jumpReportToToday()"
-            class="hidden text-[11px] font-bold text-orange-600 hover:underline mt-0.5"
+            class="hidden text-[11px] font-bold text-[#e86f51] hover:underline mt-0.5"
           >
             Voltar ao período atual
           </button>
@@ -540,59 +526,45 @@
         <button
           type="button"
           onclick="navigateReportPeriod(1)"
-          class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-700 text-lg font-extrabold"
+          class="px-3 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-[#1e3a5f] text-xs font-extrabold shrink-0"
           aria-label="Próximo período"
         >
-          ›
+          Próximo ›
         </button>
       </div>
 
-      <!-- 3 Cards de Resumo do Período -->
+      <!-- 3 Cards de Métricas -->
       <div class="grid grid-cols-3 gap-2.5">
         <div class="print-card bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80">
           <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Assistido</p>
-          <p id="kpi-total-hours" class="text-base sm:text-lg font-extrabold text-orange-600 mt-1">0h 00m</p>
-          <p id="kpi-total-mins" class="text-[11px] font-semibold text-slate-500 mt-0.5">0 min</p>
+          <p id="kpi-total-primary" class="text-base sm:text-lg font-extrabold text-[#e86f51] mt-1">0m</p>
+          <p id="kpi-total-secondary" class="text-[11px] font-semibold text-slate-500 mt-0.5">0h 00m</p>
         </div>
 
         <div class="print-card bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80">
-          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Média por Dia</p>
-          <p id="kpi-avg-mins" class="text-base sm:text-lg font-extrabold text-indigo-700 mt-1">0 min</p>
-          <p id="kpi-avg-desc" class="text-[11px] font-semibold text-slate-500 mt-0.5">no dia</p>
+          <p id="kpi-middle-title" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sessões</p>
+          <p id="kpi-middle-primary" class="text-base sm:text-lg font-extrabold text-[#1e3a5f] mt-1">0</p>
+          <p id="kpi-middle-secondary" class="text-[11px] font-semibold text-slate-500 mt-0.5">vídeos no dia</p>
         </div>
 
         <div class="print-card bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80">
           <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mais Assistido</p>
           <p id="kpi-top-video" class="text-xs sm:text-sm font-extrabold text-slate-900 mt-1 truncate">—</p>
-          <p id="kpi-top-video-mins" class="text-[11px] font-semibold text-slate-500 mt-0.5 truncate">0 min</p>
+          <p id="kpi-top-video-mins" class="text-[11px] font-semibold text-slate-500 mt-0.5 truncate">0m</p>
         </div>
       </div>
 
-      <!-- Gráfico 1: Barras (Chart.js) -->
+      <!-- Gráfico Interativo Chart.js -->
       <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 id="rep-bar-chart-title" class="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Minutos por Vídeo no Dia
+            Tempo Assistido por Vídeo
           </h3>
-          <span id="rep-bar-chart-peak" class="text-[11px] font-bold text-slate-400">Pico: 0 min</span>
+          <span id="rep-bar-chart-peak" class="text-[11px] font-bold text-slate-400">Pico: 0m</span>
         </div>
 
         <div class="relative h-52 w-full">
           <canvas id="tv-bar-chart"></canvas>
-        </div>
-      </div>
-
-      <!-- Gráfico 2: Distribuição por Categoria / Idioma -->
-      <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Distribuição por Categoria / Idioma
-          </h3>
-          <span id="rep-categories-count" class="text-[11px] font-bold text-slate-400">0 categorias</span>
-        </div>
-
-        <div id="rep-category-breakdown" class="space-y-3">
-          <!-- Barras de progresso por categoria renderizadas via JS -->
         </div>
       </div>
 
@@ -610,7 +582,7 @@
         </div>
       </div>
 
-      <!-- Lista Detalhada de Todos os Registros do Período -->
+      <!-- Histórico Detalhado do Período -->
       <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -624,38 +596,38 @@
         </div>
       </div>
 
-      <!-- Botões de Rodapé: Imprimir / Salvar PDF & Exportar Backup JSON -->
+      <!-- Botões Exportar PDF / Imprimir e Backup JSON -->
       <div class="no-print grid grid-cols-2 gap-2.5 pt-1">
         <button
           type="button"
           onclick="window.print()"
-          class="py-3.5 px-3 rounded-2xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
+          class="py-3.5 px-3 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
         >
           <span>🖨️</span>
-          <span>Imprimir / Salvar PDF</span>
+          <span>Exportar PDF / Imprimir</span>
         </button>
 
         <button
           type="button"
           onclick="exportBackupJson()"
-          class="py-3.5 px-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
+          class="py-3.5 px-3 rounded-2xl bg-[#e86f51] hover:bg-[#d45a3c] active:scale-95 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
         >
           <span>💾</span>
-          <span>Exportar Backup (JSON)</span>
+          <span>Backup JSON</span>
         </button>
       </div>
     </section>
 
   </main>
 
-  <!-- Barra de Navegação Inferior Fixa (3 Abas com Safe-Area iOS) -->
+  <!-- Barra de Navegação Inferior Fixa com 3 Abas -->
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 safe-bottom-nav">
     <div class="max-w-lg mx-auto grid grid-cols-3 pt-1.5 px-2">
       <button
         type="button"
         id="nav-btn-registrar"
         onclick="switchTab('registrar')"
-        class="flex flex-col items-center justify-center py-1.5 rounded-xl text-orange-600 transition-colors"
+        class="flex flex-col items-center justify-center py-1.5 rounded-xl text-[#e86f51] transition-colors"
       >
         <span class="text-xl leading-none" aria-hidden="true">📺</span>
         <span class="text-[11px] font-extrabold mt-1">Registrar</span>
@@ -684,11 +656,11 @@
     </div>
   </nav>
 
-  <!-- Modal Customizado Reutilizável (Substitui alert/confirm nativos) -->
+  <!-- Modal Customizado Reutilizável (Sem alert/confirm nativos) -->
   <div id="modal-backdrop" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-4 panel-enter">
       <div class="flex items-center justify-between">
-        <h3 id="modal-title" class="text-base font-extrabold text-slate-900">Título</h3>
+        <h3 id="modal-title" class="text-base font-extrabold text-[#1e3a5f]">Título</h3>
         <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold flex items-center justify-center">
           ✕
         </button>
@@ -699,7 +671,7 @@
   </div>
 
   <!-- ======================================================================= -->
-  <!-- FIREBASE SDK v10.12.2 + LÓGICA COMPLETA DO CONTROLE DE TV               -->
+  <!-- FIREBASE SDK v10.12.2 + LÓGICA COMPLETA DO CONTROLE DE TV DA LAÍS       -->
   <!-- ======================================================================= -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -732,16 +704,8 @@
     const db = getFirestore(app);
 
     // =========================================================================
-    // 2. CONSTANTES DE CATEGORIAS, DESENHOS E DURAÇÕES RÁPIDAS
+    // 2. CONSTANTES DOS 8 DESENHOS E 10 DURAÇÕES RÁPIDAS
     // =========================================================================
-    const CATEGORIES = [
-      { id: 'Desenho', label: 'Desenho', icon: '📺', color: '#F97316' },
-      { id: 'Em Inglês', label: 'Em Inglês', icon: '🇺🇸', color: '#3B82F6' },
-      { id: 'Educativo', label: 'Educativo', icon: '🎓', color: '#10B981' },
-      { id: 'Filme', label: 'Filme', icon: '🎬', color: '#8B5CF6' },
-      { id: 'Música', label: 'Música', icon: '🎵', color: '#EC4899' },
-    ];
-
     const MOST_WATCHED_VIDEOS = [
       'Daniel o tigre',
       'Kipper',
@@ -788,10 +752,8 @@
 
       // Aba Registrar
       regDate: getLocalYMD(new Date()),
-      regCategory: 'Desenho',
 
       // Aba Cronômetro
-      swCategory: 'Desenho',
       timerRunning: false,
       timerStartedAt: null,
       timerAccumulatedMs: 0,
@@ -805,7 +767,7 @@
     };
 
     // =========================================================================
-    // 4. UTILITÁRIOS DE DATA, FORMATAÇÃO E SANITIZAÇÃO
+    // 4. UTILITÁRIOS DE DATA, PARSE INTELIGENTE E FORMATAÇÃO DE MINUTOS
     // =========================================================================
     function getLocalYMD(dateObj) {
       const y = dateObj.getFullYear();
@@ -834,21 +796,41 @@
       });
     }
 
-    function formatHoursMinutes(totalMins) {
-      const totalSec = Math.round((Number(totalMins) || 0) * 60);
-      const h = Math.floor(totalSec / 3600);
-      const rem = totalSec % 3600;
-      const m = Math.floor(rem / 60);
-      const s = rem % 60;
-      if (s > 0) {
-        return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
-      }
-      return `${h}h ${String(m).padStart(2, '0')}m`;
+    function roundMins(val) {
+      return Math.round((Number(val) || 0) * 1000) / 1000;
     }
 
+    /**
+     * Interpreta entradas de minutos com vírgula ou ponto representando segundos
+     * (ex.: "1,30" ou "1.30" -> 1.5 min; "2,30" -> 2.5 min; "3,30" -> 3.5 min)
+     * bem como decimais puros (ex.: "1.5", "1,5") e inteiros (ex.: "1", "4", "7", "8", "9").
+     */
+    function parseMinutesInput(val) {
+      if (val === null || val === undefined) return NaN;
+      const trimmed = String(val).trim();
+      if (!trimmed) return NaN;
+
+      // Padrão M,SS ou M.SS com dois dígitos de segundos (00 a 59), ex.: "1,30", "1.30", "2,30", "3,30"
+      const minSecMatch = trimmed.match(/^(\d+)[,.]([0-5]\d)$/);
+      if (minSecMatch) {
+        const minsPart = parseInt(minSecMatch[1], 10);
+        const secsPart = parseInt(minSecMatch[2], 10);
+        return roundMins(minsPart + secsPart / 60);
+      }
+
+      const normalized = trimmed.replace(',', '.');
+      const parsed = parseFloat(normalized);
+      return Number.isFinite(parsed) ? roundMins(parsed) : NaN;
+    }
+
+    /**
+     * Formata minutos de forma legível com horas, minutos e segundos quando houver fração:
+     * Ex.: 1.5 -> "1m 30s", 2.5 -> "2m 30s", 4 -> "4m", 65.5 -> "1h 05m 30s"
+     */
     function formatarMinutos(min) {
       const val = Number(min) || 0;
-      if (val <= 0) return '0 min';
+      if (val <= 0) return '0m';
+
       const totalSec = Math.round(val * 60);
       const hrs = Math.floor(totalSec / 3600);
       const rem = totalSec % 3600;
@@ -856,35 +838,26 @@
       const secs = rem % 60;
 
       if (hrs > 0) {
+        const mm = String(mins).padStart(2, '0');
         if (secs > 0) {
-          return `${hrs}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
+          const ss = String(secs).padStart(2, '0');
+          return `${hrs}h ${mm}m ${ss}s`;
         }
-        return `${hrs}h ${String(mins).padStart(2, '0')}m`;
+        return `${hrs}h ${mm}m`;
       }
+
       if (secs > 0) {
         return mins > 0 ? `${mins}m ${String(secs).padStart(2, '0')}s` : `${secs}s`;
       }
-      return `${mins} min`;
+
+      return `${mins}m`;
     }
 
-    function roundMins(val) {
-      return Math.round((Number(val) || 0) * 100) / 100;
-    }
-
-    function parseMinutesInput(rawValue) {
-      if (rawValue === null || rawValue === undefined) return NaN;
-      const trimmed = String(rawValue).trim();
-      if (!trimmed) return NaN;
-
-      // Suporta digitação no padrão "1,30" / "2,30" (minutos,segundos) -> 1.5 / 2.5
-      const minSecMatch = trimmed.match(/^(\d+),30$/);
-      if (minSecMatch) {
-        return roundMins(parseInt(minSecMatch[1], 10) + 0.5);
-      }
-
-      const normalized = trimmed.replace(',', '.');
-      const parsed = parseFloat(normalized);
-      return Number.isFinite(parsed) ? roundMins(parsed) : NaN;
+    function formatHoursSummary(totalMins) {
+      const totalSec = Math.round((Number(totalMins) || 0) * 60);
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      return `${h}h ${String(m).padStart(2, '0')}m`;
     }
 
     function getWeekMonday(dateObj) {
@@ -893,10 +866,6 @@
       const diff = day === 0 ? -6 : 1 - day;
       d.setDate(d.getDate() + diff);
       return d;
-    }
-
-    function getCategoryMeta(catId) {
-      return CATEGORIES.find((c) => c.id === catId) || CATEGORIES[0];
     }
 
     function escapeHtml(value) {
@@ -946,31 +915,30 @@
       const pill = document.getElementById('sync-status-pill');
       if (mode === 'cloud') {
         state.cloudConnected = true;
-        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30';
-        pill.textContent = '🟢 Nuvem ativa';
+        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/30';
+        pill.textContent = '🟢 Sincronizado';
+      } else if (mode === 'saving') {
+        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/25 text-amber-100 border border-amber-300/40';
+        pill.textContent = '🟡 Salvando...';
       } else if (mode === 'connecting') {
         state.cloudConnected = false;
-        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30';
+        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-100 border border-amber-300/30';
         pill.textContent = '🟡 Conectando...';
       } else {
         state.cloudConnected = false;
-        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-200 border border-slate-500/40';
+        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/15 text-slate-200 border border-white/20';
         pill.textContent = '🟠 Local';
       }
     }
 
     async function initCloudSync() {
-      // Carrega imediatamente o cache local para exibição instantânea sem espera
       state.records = loadRecordsFromLocalCache(state.familyCode);
       renderAll();
-
       setSyncStatus('connecting');
 
-      // Autenticação anônima silenciosa antes de conectar o listener do Firestore
       try {
         await signInAnonymously(auth);
       } catch (authErr) {
-        // Caso o provedor anônimo ainda não esteja ativado no console, tenta conectar mesmo assim
         console.warn('Aviso na autenticação anônima:', authErr?.code || authErr);
       }
 
@@ -1005,13 +973,11 @@
               date: data.date || getLocalYMD(new Date()),
               videoTitle: data.videoTitle || 'Vídeo sem título',
               minutes: Number(data.minutes) || 0,
-              category: data.category || 'Desenho',
               recordedBy: data.recordedBy || 'Pai',
               _createdMs: createdMs,
             });
           });
 
-          // Preserva eventuais registros criados offline que ainda não subiram
           const localPending = loadRecordsFromLocalCache(code).filter((item) =>
             String(item.id).startsWith('local_')
           );
@@ -1023,16 +989,17 @@
           renderAll();
         },
         (error) => {
-          console.warn('Firestore em modo local/offline:', error?.code || error);
+          console.warn('Firestore operando em modo local:', error?.code || error);
           setSyncStatus('local');
           renderAll();
         }
       );
     }
 
-    async function persistNewRecord({ date, videoTitle, minutes, category, recordedBy }) {
+    async function persistNewRecord({ date, videoTitle, minutes, recordedBy }) {
       const code = state.familyCode;
       const clientCreatedMs = Date.now();
+      setSyncStatus('saving');
 
       try {
         const registrosCol = collection(db, 'tv_families', code, 'registros');
@@ -1040,7 +1007,6 @@
           date,
           videoTitle,
           minutes,
-          category,
           recordedBy,
           clientCreatedMs,
           createdAt: serverTimestamp(),
@@ -1054,7 +1020,6 @@
           date,
           videoTitle,
           minutes,
-          category,
           recordedBy,
           _createdMs: clientCreatedMs,
         };
@@ -1069,16 +1034,20 @@
 
     async function removeRecordById(recordId) {
       const code = state.familyCode;
+      setSyncStatus('saving');
+
       if (String(recordId).startsWith('local_')) {
         const updated = state.records.filter((r) => r.id !== recordId);
         state.records = updated;
         saveRecordsToLocalCache(code, updated);
+        setSyncStatus('local');
         renderAll();
         return;
       }
 
       try {
         await deleteDoc(doc(db, 'tv_families', code, 'registros', recordId));
+        setSyncStatus('cloud');
       } catch (err) {
         console.warn('Erro ao remover da nuvem, removendo localmente:', err);
         const updated = state.records.filter((r) => r.id !== recordId);
@@ -1090,7 +1059,7 @@
     }
 
     // =========================================================================
-    // 6. PERFIL DO CELULAR (PAI/MÃE), CÓDIGO DA FAMÍLIA E NAVEGAÇÃO
+    // 6. PERFIL DO CELULAR (PAI / MÃE), CÓDIGO DA FAMÍLIA E NAVEGAÇÃO
     // =========================================================================
     window.setProfile = function (role) {
       state.profile = role;
@@ -1103,18 +1072,16 @@
       const btnMae = document.getElementById('profile-btn-mae');
 
       if (state.profile === 'Pai') {
-        btnPai.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xs';
+        btnPai.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 bg-[#e86f51] text-white shadow-xs';
         btnMae.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 text-slate-300 hover:text-white';
       } else {
-        btnMae.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xs';
+        btnMae.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 bg-[#e86f51] text-white shadow-xs';
         btnPai.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 text-slate-300 hover:text-white';
       }
 
-      const badge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
-      document.getElementById('btn-save-tv-text').textContent = `Salvar Registro de TV (${badge})`;
-
       if (showFeedback) {
-        showToast(`Celular configurado como ${badge}`, state.profile === 'Pai' ? '👨' : '👩');
+        const badge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
+        showToast(`Perfil ativo neste aparelho: ${badge}`, state.profile === 'Pai' ? '👨' : '👩');
       }
     }
 
@@ -1123,7 +1090,7 @@
         title: 'Código da Família Compartilhado',
         bodyHtml: `
           <p class="text-xs text-slate-500 leading-relaxed">
-            Use o <strong>mesmo código</strong> no iPhone do Pai e no iPhone da Mãe para que ambos visualizem e registrem o tempo de TV da Laís em conjunto.
+            Use o <strong>mesmo código</strong> no iPhone do Pai e no iPhone da Mãe para que ambos visualizem e registrem o tempo de TV da Laís em tempo real.
           </p>
           <div>
             <label for="input-family-code" class="block text-xs font-bold text-slate-700 mb-1">Código da Família</label>
@@ -1133,7 +1100,7 @@
               value="${escapeHtml(state.familyCode)}"
               maxlength="32"
               placeholder="LAIS-HOME"
-              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold uppercase text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold uppercase text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40"
             />
           </div>
         `,
@@ -1144,7 +1111,7 @@
           },
           {
             label: 'Conectar Código',
-            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-orange-500 text-white',
+            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-[#e86f51] text-white',
             onClick: () => {
               const raw = document.getElementById('input-family-code').value.trim().toUpperCase();
               const sanitized = raw.replace(/[^A-Z0-9-_]/g, '');
@@ -1173,10 +1140,10 @@
         if (t === tabName) {
           view.classList.remove('hidden');
           btn.classList.remove('text-slate-400');
-          btn.classList.add('text-orange-600');
+          btn.classList.add('text-[#e86f51]');
         } else {
           view.classList.add('hidden');
-          btn.classList.remove('text-orange-600');
+          btn.classList.remove('text-[#e86f51]');
           btn.classList.add('text-slate-400');
         }
       });
@@ -1187,7 +1154,7 @@
     };
 
     // =========================================================================
-    // 7. ABA 1: 📺 REGISTRAR (DATA, VÍDEO, SUGESTÕES, CATEGORIA, MINUTOS E LISTA)
+    // 7. ABA 1: 📺 REGISTRAR (DATA, VÍDEO, DURAÇÃO E LISTA DO DIA)
     // =========================================================================
     window.setQuickDate = function (offsetDays) {
       const d = new Date();
@@ -1215,12 +1182,12 @@
 
       document.getElementById('btn-date-today').className =
         state.regDate === todayYmd
-          ? 'px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 text-white shadow-xs transition-all shrink-0'
+          ? 'px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-[#1e3a5f] text-white shadow-xs transition-all shrink-0'
           : 'px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all shrink-0';
 
       document.getElementById('btn-date-yesterday').className =
         state.regDate === yestYmd
-          ? 'px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 text-white shadow-xs transition-all shrink-0'
+          ? 'px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-[#1e3a5f] text-white shadow-xs transition-all shrink-0'
           : 'px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all shrink-0';
     }
 
@@ -1241,21 +1208,6 @@
         persistTimerToStorage();
       }
       renderVideoSuggestionChips();
-
-      // Se já houver categoria mais frequente para esse vídeo, seleciona automaticamente
-      const match = state.records.find(
-        (r) => (r.videoTitle || '').trim().toLowerCase() === title.trim().toLowerCase()
-      );
-      if (match && match.category) {
-        if (targetInputId === 'reg-video-input') {
-          state.regCategory = match.category;
-          renderCategoryPills('reg-category-pills', state.regCategory, 'selectRegCategory');
-        } else {
-          state.swCategory = match.category;
-          renderCategoryPills('sw-category-pills', state.swCategory, 'selectSwCategory');
-          persistTimerToStorage();
-        }
-      }
     };
 
     window.clearVideoInput = function () {
@@ -1265,40 +1217,13 @@
       input.focus();
     };
 
-    window.selectRegCategory = function (catId) {
-      state.regCategory = catId;
-      renderCategoryPills('reg-category-pills', state.regCategory, 'selectRegCategory');
-    };
-
-    window.selectSwCategory = function (catId) {
-      state.swCategory = catId;
-      renderCategoryPills('sw-category-pills', state.swCategory, 'selectSwCategory');
+    window.clearSwVideoInput = function () {
+      const input = document.getElementById('sw-video-input');
+      input.value = '';
       persistTimerToStorage();
+      renderVideoSuggestionChips();
+      input.focus();
     };
-
-    function renderCategoryPills(containerId, selectedId, handlerName) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-
-      container.innerHTML = CATEGORIES.map((cat) => {
-        const isSelected = cat.id === selectedId;
-        return `
-          <button
-            type="button"
-            onclick="${handlerName}('${cat.id}')"
-            style="${
-              isSelected
-                ? `background-color: ${cat.color}; border-color: ${cat.color}; color: #FFFFFF;`
-                : `background-color: #F8FAFC; border-color: #E2E8F0; color: #334155;`
-            }"
-            class="px-3 py-2 rounded-xl border text-xs font-extrabold transition-all active:scale-95 flex items-center gap-1.5"
-          >
-            <span>${cat.icon}</span>
-            <span>${escapeHtml(cat.label)}</span>
-          </button>
-        `;
-      }).join('');
-    }
 
     function renderVideoSuggestionChips() {
       const regContainer = document.getElementById('reg-video-suggestions');
@@ -1315,8 +1240,8 @@
               onclick="applyVideoSuggestion('${escapeHtml(title).replace(/'/g, "\\'")}', '${targetId}')"
               class="px-3 py-2 rounded-xl border text-xs font-extrabold transition-all active:scale-95 ${
                 isSelected
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 border-orange-500 text-white shadow-xs'
-                  : 'bg-orange-50/90 hover:bg-orange-100 border-orange-200/80 text-orange-950'
+                  ? 'bg-[#1e3a5f] border-[#1e3a5f] text-white shadow-xs'
+                  : 'bg-[#fdf1ee] hover:bg-[#fae2dc] border-[#e86f51]/30 text-[#1e3a5f]'
               }"
             >
               ${isSelected ? '✓ ' : ''}${escapeHtml(title)}
@@ -1337,11 +1262,11 @@
         return `
           <button
             type="button"
-            onclick="selectQuickMinutes(${item.value})"
+            onclick="selectQuickMinutes('${item.label}', ${item.value})"
             class="py-2.5 px-1 rounded-xl border font-extrabold text-xs sm:text-sm transition-all active:scale-95 ${
               isSelected
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 border-orange-500 text-white shadow-xs'
-                : 'bg-slate-50 hover:bg-orange-50 border-slate-200 text-slate-800'
+                ? 'bg-[#e86f51] border-[#e86f51] text-white shadow-xs'
+                : 'bg-slate-50 hover:bg-[#fdf1ee] border-slate-200 text-slate-800'
             }"
           >
             ${escapeHtml(item.label)}
@@ -1357,21 +1282,21 @@
 
       if (captionEl) {
         if (!Number.isFinite(val) || val <= 0) {
-          captionEl.textContent = 'Selecione um atalho acima ou digite os minutos (ex.: 1,5 ou 10)';
+          captionEl.textContent = '⏱️ Duração: 0m';
           captionEl.className = 'text-xs font-medium text-slate-400 text-center mt-1.5';
         } else {
-          const decimalBr = String(val).replace('.', ',');
-          captionEl.textContent = `⏱️ ${formatarMinutos(val)} (${decimalBr} min)`;
-          captionEl.className = 'text-xs font-extrabold text-orange-700 text-center mt-1.5';
+          captionEl.textContent = `⏱️ Duração: ${formatarMinutos(val)}`;
+          captionEl.className = 'text-xs font-extrabold text-[#1e3a5f] text-center mt-1.5';
         }
       }
       renderQuickMinutesButtons(val);
     }
 
-    window.selectQuickMinutes = function (val) {
+    window.selectQuickMinutes = function (label, val) {
       const input = document.getElementById('reg-minutes-input');
       if (!input) return;
-      input.value = String(val).replace('.', ',');
+      // Exibe no formato amigável ("1,30", "2,30", "3,30" ou inteiro "1", "4"...)
+      input.value = label.replace(/m$/, '');
       updateMinutesCaption();
     };
 
@@ -1399,7 +1324,7 @@
 
       const minutes = parseMinutesInput(minutesInput.value);
       if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 720) {
-        showToast('Informe uma duração válida em minutos (ex.: 1,5 ou 7).', '⏱️');
+        showToast('Informe uma duração válida em minutos (ex.: 1,30 ou 4).', '⏱️');
         minutesInput.focus();
         return;
       }
@@ -1409,7 +1334,6 @@
         date: state.regDate,
         videoTitle,
         minutes,
-        category: state.regCategory,
         recordedBy: state.profile,
       });
       saveBtn.disabled = false;
@@ -1422,7 +1346,7 @@
       const formatted = formatarMinutos(minutes);
       showToast(
         result.synced
-          ? `📺 "${videoTitle}" (${formatted}) salvo na nuvem!`
+          ? `📺 "${videoTitle}" (${formatted}) salvo!`
           : `📺 "${videoTitle}" (${formatted}) salvo localmente!`,
         '🎉'
       );
@@ -1467,8 +1391,8 @@
       const totalMins = roundMins(dayRecords.reduce((sum, r) => sum + (Number(r.minutes) || 0), 0));
       const count = dayRecords.length;
 
-      labelEl.textContent = `Resumo de ${formatHumanDate(state.regDate)}`;
-      totalEl.innerHTML = `${formatarMinutos(totalMins)} <span class="text-sm font-semibold text-slate-300">(${formatHoursMinutes(totalMins)})</span>`;
+      labelEl.textContent = `Total no dia (${formatHumanDate(state.regDate)})`;
+      totalEl.textContent = formatarMinutos(totalMins);
       countBadge.textContent = count === 1 ? '1 vídeo' : `${count} vídeos`;
 
       if (count === 0) {
@@ -1482,31 +1406,21 @@
 
       listEl.innerHTML = dayRecords
         .map((rec) => {
-          const cat = getCategoryMeta(rec.category);
           const isMae = rec.recordedBy === 'Mãe';
 
           return `
             <div class="bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80 flex items-center justify-between gap-3">
-              <div class="flex items-start gap-3 min-w-0">
-                <span
-                  class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
-                  style="background-color: ${cat.color}18;"
-                >
-                  ${cat.icon}
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-10 h-10 rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f] flex items-center justify-center text-lg shrink-0">
+                  📺
                 </span>
                 <div class="min-w-0">
                   <p class="text-sm font-extrabold text-slate-900 break-words leading-snug">
                     ${escapeHtml(rec.videoTitle)}
                   </p>
-                  <div class="flex items-center gap-1.5 flex-wrap mt-1">
-                    <span
-                      class="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-                      style="background-color: ${cat.color}18; color: ${cat.color};"
-                    >
-                      ${cat.icon} ${escapeHtml(cat.label)}
-                    </span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      isMae ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-700'
+                  <div class="mt-1">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isMae ? 'bg-pink-50 text-pink-700' : 'bg-[#1e3a5f]/10 text-[#1e3a5f]'
                     }">
                       ${isMae ? '👩 Mãe' : '👨 Pai'}
                     </span>
@@ -1515,7 +1429,7 @@
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs font-extrabold text-orange-800 bg-orange-50 border border-orange-200/80 px-2.5 py-1.5 rounded-xl">
+                <span class="text-xs font-extrabold text-[#e86f51] bg-[#fdf1ee] border border-[#e86f51]/30 px-2.5 py-1.5 rounded-xl">
                   ${formatarMinutos(rec.minutes)}
                 </span>
                 <button
@@ -1534,7 +1448,7 @@
     }
 
     // =========================================================================
-    // 8. ABA 2: ⏱️ CRONÔMETRO AO VIVO BASEADO EM TIMESTAMP REAL
+    // 8. ABA 2: ⏱️ CRONÔMETRO PERSISTENTE VIA TIMESTAMP (Date.now())
     // =========================================================================
     function restoreTimerFromStorage() {
       try {
@@ -1545,7 +1459,6 @@
         state.timerStartedAt = saved.startedAt || null;
         state.timerAccumulatedMs = Number(saved.accumulatedMs) || 0;
         state.timerVideoTitle = saved.videoTitle || '';
-        if (saved.category) state.swCategory = saved.category;
 
         const videoEl = document.getElementById('sw-video-input');
         if (videoEl) videoEl.value = state.timerVideoTitle;
@@ -1569,7 +1482,6 @@
           startedAt: state.timerStartedAt,
           accumulatedMs: state.timerAccumulatedMs,
           videoTitle: state.timerVideoTitle,
-          category: state.swCategory,
         })
       );
     };
@@ -1596,51 +1508,53 @@
       const hhmmss = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
       document.getElementById('sw-clock-display').textContent = hhmmss;
 
-      const calcMins = totalSeconds > 0 ? Math.max(0.5, Math.round(totalSeconds / 30) * 0.5) : 0;
+      const decimalMins = totalSeconds > 0 ? roundMins(totalSeconds / 60) : 0;
       document.getElementById('sw-calculated-mins').textContent =
         totalSeconds > 0
-          ? `Será salvo como ${formatarMinutos(calcMins)} no diário`
-          : '0 minutos calculados';
+          ? `Será salvo como ${formatarMinutos(decimalMins)}`
+          : '0m acumulados';
 
       document.getElementById('btn-timer-save-label').textContent =
-        calcMins > 0 ? `Salvar no Diário (${formatarMinutos(calcMins)})` : 'Salvar no Diário (Hoje)';
+        decimalMins > 0 ? `Salvar no Diário (${formatarMinutos(decimalMins)})` : 'Salvar no Diário';
 
-      const btnStart = document.getElementById('btn-timer-start');
-      const btnPause = document.getElementById('btn-timer-pause');
+      const btnToggle = document.getElementById('btn-timer-toggle');
       const dot = document.getElementById('sw-dot');
       const label = document.getElementById('sw-status-label');
       const navDot = document.getElementById('nav-timer-live-dot');
 
       if (state.timerRunning) {
-        btnStart.disabled = true;
-        btnStart.classList.add('opacity-45');
-        btnPause.disabled = false;
-        btnPause.classList.remove('opacity-45');
+        btnToggle.className = 'py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all';
+        btnToggle.textContent = '⏸ Pausar';
         dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
         label.textContent = 'Cronometrando tempo de TV...';
         navDot.classList.remove('hidden');
       } else {
-        btnStart.disabled = false;
-        btnStart.classList.remove('opacity-45');
-        btnStart.textContent = elapsedMs > 0 ? '▶ Retomar' : '▶ Iniciar';
-        btnPause.disabled = true;
-        btnPause.classList.add('opacity-45');
+        btnToggle.className = 'py-3.5 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all';
+        btnToggle.textContent = elapsedMs > 0 ? '▶ Retomar' : '▶ Iniciar';
         dot.className = elapsedMs > 0 ? 'w-2 h-2 rounded-full bg-amber-500' : 'w-2 h-2 rounded-full bg-slate-400';
         label.textContent = elapsedMs > 0 ? 'Pausado' : 'Aguardando início';
         navDot.classList.add('hidden');
       }
     }
 
-    window.startTimer = function () {
+    window.toggleTimer = function () {
+      if (state.timerRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    };
+
+    function startTimer() {
       if (state.timerRunning) return;
       state.timerRunning = true;
       state.timerStartedAt = Date.now();
       persistTimerToStorage();
       startTimerInterval();
       updateTimerDisplay();
-    };
+    }
 
-    window.pauseTimer = function () {
+    function pauseTimer() {
       if (!state.timerRunning) return;
       state.timerAccumulatedMs += Date.now() - state.timerStartedAt;
       state.timerRunning = false;
@@ -1648,7 +1562,7 @@
       if (state.timerIntervalId) clearInterval(state.timerIntervalId);
       persistTimerToStorage();
       updateTimerDisplay();
-    };
+    }
 
     window.resetTimer = function () {
       state.timerRunning = false;
@@ -1669,7 +1583,7 @@
       const videoInput = document.getElementById('sw-video-input');
       const videoTitle = videoInput.value.trim();
       if (!videoTitle) {
-        showToast('Digite qual vídeo a Laís assistiu antes de salvar.', '📺');
+        showToast('Digite ou selecione qual vídeo a Laís assistiu.', '📺');
         videoInput.focus();
         return;
       }
@@ -1678,14 +1592,13 @@
         pauseTimer();
       }
 
-      const minutesToSave = Math.max(0.5, Math.round(totalSeconds / 30) * 0.5);
+      const minutesToSave = Math.max(0.05, roundMins(totalSeconds / 60));
       const todayYmd = getLocalYMD(new Date());
 
       const result = await persistNewRecord({
         date: todayYmd,
         videoTitle,
         minutes: minutesToSave,
-        category: state.swCategory,
         recordedBy: state.profile,
       });
 
@@ -1699,7 +1612,7 @@
       const formatted = formatarMinutos(minutesToSave);
       showToast(
         result.synced
-          ? `📺 "${videoTitle}" (${formatted}) salvo na nuvem!`
+          ? `📺 "${videoTitle}" (${formatted}) salvo!`
           : `📺 "${videoTitle}" (${formatted}) salvo localmente!`,
         '🎉'
       );
@@ -1715,7 +1628,7 @@
         const btn = document.getElementById(`rep-mode-${m}`);
         btn.className =
           m === mode
-            ? 'py-2.5 rounded-xl text-xs font-extrabold bg-white text-slate-900 shadow-xs transition-all'
+            ? 'py-2.5 rounded-xl text-xs font-extrabold bg-white text-[#1e3a5f] shadow-xs transition-all'
             : 'py-2.5 rounded-xl text-xs font-extrabold text-slate-600 transition-all';
       });
       renderReports();
@@ -1787,13 +1700,15 @@
     function renderReports() {
       const { periodRecords, periodLabel, isCurrentPeriod, daysInPeriod, weekMonday } = getFilteredReportPeriod();
 
-      // Atualiza título e botão voltar ao atual
       document.getElementById('rep-period-title').textContent = periodLabel;
+      document.getElementById('print-period-subtitle').textContent = `Período (${state.reportMode}): ${periodLabel}`;
+      document.getElementById('print-generated-date').textContent = `Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
+      document.getElementById('print-family-label').textContent = `Família: ${state.familyCode}`;
+
       const jumpBtn = document.getElementById('btn-rep-jump-current');
       if (isCurrentPeriod) jumpBtn.classList.add('hidden');
       else jumpBtn.classList.remove('hidden');
 
-      // Cálculos dos 3 KPIs (com precisão decimal para meios-minutos)
       const totalMins = roundMins(periodRecords.reduce((sum, r) => sum + (Number(r.minutes) || 0), 0));
       const avgDailyMins = roundMins(totalMins / daysInPeriod);
 
@@ -1807,7 +1722,6 @@
             title: cleanTitle,
             minutes: 0,
             count: 0,
-            category: rec.category || 'Desenho',
           });
         }
         const entry = videoRankingMap.get(key);
@@ -1821,30 +1735,33 @@
       );
       const topVideo = videoRanking[0] || null;
 
-      document.getElementById('kpi-total-hours').textContent = formatHoursMinutes(totalMins);
-      document.getElementById('kpi-total-mins').textContent = formatarMinutos(totalMins);
-      document.getElementById('kpi-avg-mins').textContent = formatarMinutos(avgDailyMins);
-      document.getElementById('kpi-avg-desc').textContent =
-        state.reportMode === 'diario' ? 'no dia' : `média / ${daysInPeriod}d`;
+      // Card 1: Total Assistido
+      document.getElementById('kpi-total-primary').textContent = formatarMinutos(totalMins);
+      document.getElementById('kpi-total-secondary').textContent = formatHoursSummary(totalMins);
 
+      // Card 2: Sessões (no modo diário) ou Média Diária (nos modos semanal/mensal)
+      if (state.reportMode === 'diario') {
+        document.getElementById('kpi-middle-title').textContent = 'Sessões';
+        document.getElementById('kpi-middle-primary').textContent = String(periodRecords.length);
+        document.getElementById('kpi-middle-secondary').textContent =
+          periodRecords.length === 1 ? 'vídeo no dia' : 'vídeos no dia';
+      } else {
+        document.getElementById('kpi-middle-title').textContent = 'Média Diária';
+        document.getElementById('kpi-middle-primary').textContent = formatarMinutos(avgDailyMins);
+        document.getElementById('kpi-middle-secondary').textContent = `média / ${daysInPeriod}d`;
+      }
+
+      // Card 3: Mais Assistido
       if (topVideo) {
         document.getElementById('kpi-top-video').textContent = topVideo.title;
         document.getElementById('kpi-top-video-mins').textContent = `${formatarMinutos(topVideo.minutes)} (${topVideo.count}x)`;
       } else {
         document.getElementById('kpi-top-video').textContent = '—';
-        document.getElementById('kpi-top-video-mins').textContent = '0 min';
+        document.getElementById('kpi-top-video-mins').textContent = '0m';
       }
 
-      // Renderiza Gráfico de Barras Chart.js
       renderChartJsBar(periodRecords, weekMonday, videoRanking);
-
-      // Renderiza Distribuição por Categoria/Idioma
-      renderCategoryDistribution(periodRecords, totalMins);
-
-      // Renderiza Ranking de Vídeos mais assistidos
       renderVideosRanking(videoRanking, totalMins);
-
-      // Renderiza Histórico Detalhado do Período
       renderDetailedHistory(periodRecords);
     }
 
@@ -1856,11 +1773,11 @@
 
       let labels = [];
       let values = [];
-      let barColor = '#F97316';
+      let barColor = '#e86f51';
 
       if (state.reportMode === 'diario') {
-        titleEl.textContent = 'Minutos por Vídeo no Dia';
-        barColor = '#F97316';
+        titleEl.textContent = 'Tempo Assistido por Vídeo';
+        barColor = '#e86f51';
         if (videoRanking.length === 0) {
           labels = ['Sem registros'];
           values = [0];
@@ -1871,8 +1788,8 @@
           values = videoRanking.map((v) => v.minutes);
         }
       } else if (state.reportMode === 'semanal' && weekMonday) {
-        titleEl.textContent = 'Minutos por Dia da Semana (Seg a Dom)';
-        barColor = '#4F46E5';
+        titleEl.textContent = 'Tempo Assistido por Dia (Seg a Dom)';
+        barColor = '#1e3a5f';
         const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         for (let i = 0; i < 7; i++) {
           const d = new Date(weekMonday);
@@ -1887,8 +1804,8 @@
           values.push(mins);
         }
       } else {
-        titleEl.textContent = 'Minutos Assistidos por Dia do Mês';
-        barColor = '#F59E0B';
+        titleEl.textContent = 'Tempo Assistido por Dia do Mês';
+        barColor = '#1e3a5f';
         const year = state.reportAnchorDate.getFullYear();
         const month = state.reportAnchorDate.getMonth();
         const daysCount = new Date(year, month + 1, 0).getDate();
@@ -1921,7 +1838,7 @@
           labels,
           datasets: [
             {
-              label: 'Minutos',
+              label: 'Tempo assistido',
               data: values,
               backgroundColor: barColor,
               borderRadius: 6,
@@ -1965,51 +1882,6 @@
       });
     }
 
-    function renderCategoryDistribution(periodRecords, totalMins) {
-      const container = document.getElementById('rep-category-breakdown');
-      const countEl = document.getElementById('rep-categories-count');
-
-      const map = new Map();
-      periodRecords.forEach((rec) => {
-        const meta = getCategoryMeta(rec.category);
-        if (!map.has(meta.id)) {
-          map.set(meta.id, { ...meta, minutes: 0 });
-        }
-        map.get(meta.id).minutes = roundMins(map.get(meta.id).minutes + (Number(rec.minutes) || 0));
-      });
-
-      const list = Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
-      countEl.textContent = `${list.length} categoria(s)`;
-
-      if (list.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum dado neste período.</p>`;
-        return;
-      }
-
-      container.innerHTML = list
-        .map((item) => {
-          const pct = totalMins > 0 ? Math.round((item.minutes / totalMins) * 100) : 0;
-          return `
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <span class="font-extrabold text-slate-800 flex items-center gap-1.5">
-                  <span>${item.icon}</span>
-                  <span>${escapeHtml(item.label)}</span>
-                </span>
-                <span>
-                  <strong class="text-slate-900">${formatarMinutos(item.minutes)}</strong>
-                  <span class="text-slate-400 font-semibold ml-1">(${pct}%)</span>
-                </span>
-              </div>
-              <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${item.color};"></div>
-              </div>
-            </div>
-          `;
-        })
-        .join('');
-    }
-
     function renderVideosRanking(videoRanking, totalMins) {
       const container = document.getElementById('rep-videos-ranking');
       const countEl = document.getElementById('rep-ranking-total-titles');
@@ -2023,24 +1895,24 @@
       container.innerHTML = videoRanking
         .map((item, idx) => {
           const pct = totalMins > 0 ? Math.round((item.minutes / totalMins) * 100) : 0;
-          const cat = getCategoryMeta(item.category);
           const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
+          const barFill = idx % 2 === 0 ? '#e86f51' : '#1e3a5f';
 
           return `
             <div class="space-y-1.5">
               <div class="flex items-center justify-between gap-2 text-xs">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="w-6 text-center font-extrabold text-slate-600 shrink-0">${medal}</span>
+                  <span class="w-6 text-center font-extrabold text-[#1e3a5f] shrink-0">${medal}</span>
                   <span class="font-extrabold text-slate-900 truncate">${escapeHtml(item.title)}</span>
                   <span class="text-[10px] font-bold text-slate-400 shrink-0">(${item.count}x)</span>
                 </div>
                 <div class="shrink-0">
-                  <span class="font-extrabold text-orange-700">${formatarMinutos(item.minutes)}</span>
+                  <span class="font-extrabold text-[#e86f51]">${formatarMinutos(item.minutes)}</span>
                   <span class="text-slate-400 font-semibold ml-1">(${pct}%)</span>
                 </div>
               </div>
               <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${cat.color};"></div>
+                <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${barFill};"></div>
               </div>
             </div>
           `;
@@ -2060,7 +1932,6 @@
 
       container.innerHTML = periodRecords
         .map((rec) => {
-          const cat = getCategoryMeta(rec.category);
           const dateFormatted = parseLocalYMD(rec.date).toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
@@ -2074,16 +1945,14 @@
                   <span class="font-mono font-bold text-slate-400">${dateFormatted}</span>
                   <span class="font-extrabold text-slate-900 truncate">${escapeHtml(rec.videoTitle)}</span>
                 </div>
-                <div class="flex items-center gap-1.5 mt-1">
-                  <span class="text-[10px] font-bold text-slate-500">${cat.icon} ${escapeHtml(cat.label)}</span>
-                  <span class="text-slate-300">•</span>
-                  <span class="text-[10px] font-bold ${isMae ? 'text-pink-600' : 'text-indigo-600'}">
+                <div class="mt-1">
+                  <span class="text-[10px] font-bold ${isMae ? 'text-pink-600' : 'text-[#1e3a5f]'}">
                     ${isMae ? '👩 Mãe' : '👨 Pai'}
                   </span>
                 </div>
               </div>
 
-              <span class="font-extrabold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
+              <span class="font-extrabold text-[#1e3a5f] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
                 ${formatarMinutos(rec.minutes)}
               </span>
             </div>
@@ -2161,8 +2030,6 @@
     function renderAll() {
       renderVideoSuggestionChips();
       updateMinutesCaption();
-      renderCategoryPills('reg-category-pills', state.regCategory, 'selectRegCategory');
-      renderCategoryPills('sw-category-pills', state.swCategory, 'selectSwCategory');
       renderDailySummaryAndList();
       if (state.activeTab === 'relatorios') {
         renderReports();
