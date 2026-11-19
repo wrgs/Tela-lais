@@ -56,14 +56,14 @@
     }
 
     html, body {
-      background-color: #F3F6FA;
+      background-color: #f8fafc;
       color: #0F172A;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
       overscroll-behavior-y: none;
     }
 
-    /* Evita zoom automático do Safari no iPhone ao tocar em inputs */
+    /* Evita zoom automático do Safari no iPhone ao tocar em campos de entrada */
     input, select, textarea {
       font-size: 16px !important;
     }
@@ -90,7 +90,7 @@
     }
 
     /* ===================================================================== */
-    /* ESTILOS DE IMPRESSÃO / EXPORTAR PDF (@media print)                    */
+    /* ESTILOS DE IMPRESSÃO / SALVAR PDF (@media print)                      */
     /* ===================================================================== */
     @media print {
       @page {
@@ -179,7 +179,7 @@
         </div>
       </div>
 
-      <!-- Seletor Rápido de Perfil: Pai / Mãe -->
+      <!-- Seletor Rápido de Perfil Ativo: Pai / Mãe -->
       <div class="bg-[#13263e] p-1 rounded-xl flex items-center shrink-0 border border-white/10" role="group" aria-label="Quem está registrando">
         <button
           type="button"
@@ -306,7 +306,7 @@
           <!-- Renderizado via JS -->
         </div>
 
-        <!-- Campo Numérico de Minutos -->
+        <!-- Campo Numérico/Texto de Minutos -->
         <div>
           <div class="relative">
             <input
@@ -322,7 +322,7 @@
             </span>
           </div>
           <p id="reg-minutes-caption" class="text-xs font-medium text-slate-400 text-center mt-1.5">
-            ⏱️ Duração: 0m
+            ⏱️ 0m
           </p>
         </div>
 
@@ -334,11 +334,11 @@
           class="w-full py-4 rounded-2xl bg-[#e86f51] hover:bg-[#d45a3c] active:scale-[0.98] text-white font-extrabold text-base shadow-md shadow-[#e86f51]/25 transition-all flex items-center justify-center gap-2"
         >
           <span>📺</span>
-          <span id="btn-save-tv-text">Salvar Registro</span>
+          <span id="btn-save-tv-text">Salvar Registro (como 👨 Pai)</span>
         </button>
       </div>
 
-      <!-- Resumo do Dia Selecionado + Lista de Registros -->
+      <!-- Resumo do Dia Selecionado + Lista Cronológica de Registros -->
       <div class="pt-1 space-y-3">
         <div class="bg-[#1e3a5f] text-white rounded-3xl p-4 shadow-xs flex items-center justify-between gap-3">
           <div>
@@ -416,21 +416,30 @@
           </p>
         </div>
 
-        <!-- Botões Iniciar / Pausar & Zerar -->
-        <div class="grid grid-cols-2 gap-2.5">
+        <!-- Botões Iniciar, Pausar e Zerar -->
+        <div class="grid grid-cols-3 gap-2">
           <button
             type="button"
-            id="btn-timer-toggle"
-            onclick="toggleTimer()"
-            class="py-3.5 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all"
+            id="btn-timer-start"
+            onclick="startTimer()"
+            class="py-3.5 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-xs transition-all"
           >
-            ▶ Iniciar / Pausar
+            ▶ Iniciar
+          </button>
+          <button
+            type="button"
+            id="btn-timer-pause"
+            onclick="pauseTimer()"
+            disabled
+            class="py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-xs sm:text-sm shadow-xs transition-all opacity-45"
+          >
+            ⏸ Pausar
           </button>
           <button
             type="button"
             id="btn-timer-reset"
             onclick="resetTimer()"
-            class="py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-extrabold text-sm transition-all"
+            class="py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-extrabold text-xs sm:text-sm transition-all"
           >
             ↺ Zerar
           </button>
@@ -444,7 +453,7 @@
           class="w-full py-4 rounded-2xl bg-[#e86f51] hover:bg-[#d45a3c] active:scale-[0.98] text-white font-extrabold text-base shadow-md shadow-[#e86f51]/25 transition-all flex items-center justify-center gap-2"
         >
           <span>📥</span>
-          <span id="btn-timer-save-label">Salvar no Diário</span>
+          <span id="btn-timer-save-label">Salvar no Diário (como 👨 Pai)</span>
         </button>
 
         <p class="text-[11px] text-slate-400 leading-relaxed">
@@ -508,7 +517,7 @@
           class="px-3 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-[#1e3a5f] text-xs font-extrabold shrink-0"
           aria-label="Período anterior"
         >
-          ‹ Anterior
+          &lt; Anterior
         </button>
 
         <div class="text-center flex-1 min-w-0">
@@ -529,11 +538,11 @@
           class="px-3 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-[#1e3a5f] text-xs font-extrabold shrink-0"
           aria-label="Próximo período"
         >
-          Próximo ›
+          Próximo &gt;
         </button>
       </div>
 
-      <!-- 3 Cards de Métricas -->
+      <!-- 3 Cards de KPIs do Período -->
       <div class="grid grid-cols-3 gap-2.5">
         <div class="print-card bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80">
           <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Assistido</p>
@@ -542,9 +551,9 @@
         </div>
 
         <div class="print-card bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80">
-          <p id="kpi-middle-title" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sessões</p>
-          <p id="kpi-middle-primary" class="text-base sm:text-lg font-extrabold text-[#1e3a5f] mt-1">0</p>
-          <p id="kpi-middle-secondary" class="text-[11px] font-semibold text-slate-500 mt-0.5">vídeos no dia</p>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Média Diária</p>
+          <p id="kpi-avg-primary" class="text-base sm:text-lg font-extrabold text-[#1e3a5f] mt-1">0m</p>
+          <p id="kpi-avg-secondary" class="text-[11px] font-semibold text-slate-500 mt-0.5">no dia</p>
         </div>
 
         <div class="print-card bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80">
@@ -554,13 +563,13 @@
         </div>
       </div>
 
-      <!-- Gráfico Interativo Chart.js -->
+      <!-- GRÁFICO 1 (Chart.js): TEMPO ASSISTIDO POR DIA -->
       <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-2.5">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
           <h3 id="rep-bar-chart-title" class="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Tempo Assistido por Vídeo
+            TEMPO ASSISTIDO POR DIA
           </h3>
-          <span id="rep-bar-chart-peak" class="text-[11px] font-bold text-slate-400">Pico: 0m</span>
+          <span id="rep-bar-chart-peak" class="text-[11px] font-bold text-slate-400 shrink-0">Pico: 0m</span>
         </div>
 
         <div class="relative h-52 w-full">
@@ -568,11 +577,38 @@
         </div>
       </div>
 
-      <!-- Ranking dos Vídeos Mais Assistidos no Período -->
+      <!-- GRÁFICO 2 NOVO (Chart.js): TEMPO ASSISTIDO: PAI VS. MÃE -->
+      <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+            TEMPO ASSISTIDO: PAI VS. MÃE
+          </h3>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span
+              id="badge-total-pai"
+              class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-[#1e3a5f]/10 text-[#1e3a5f] border border-[#1e3a5f]/20"
+            >
+              👨 Pai: 0m
+            </span>
+            <span
+              id="badge-total-mae"
+              class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-[#fdf1ee] text-[#e86f51] border border-[#e86f51]/30"
+            >
+              👩 Mãe: 0m
+            </span>
+          </div>
+        </div>
+
+        <div class="relative h-52 w-full">
+          <canvas id="tv-parent-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Ranking dos Desenhos Mais Assistidos no Período -->
       <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
-            🏆 Vídeos Mais Assistidos no Período
+            🏆 Desenhos Mais Assistidos no Período
           </h3>
           <span id="rep-ranking-total-titles" class="text-[11px] font-bold text-slate-400">0 títulos</span>
         </div>
@@ -582,7 +618,7 @@
         </div>
       </div>
 
-      <!-- Histórico Detalhado do Período -->
+      <!-- Histórico Detalhado dos Registros do Período -->
       <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -596,7 +632,7 @@
         </div>
       </div>
 
-      <!-- Botões Exportar PDF / Imprimir e Backup JSON -->
+      <!-- Botões Imprimir / Salvar PDF e Exportar Backup JSON -->
       <div class="no-print grid grid-cols-2 gap-2.5 pt-1">
         <button
           type="button"
@@ -604,7 +640,7 @@
           class="py-3.5 px-3 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
         >
           <span>🖨️</span>
-          <span>Exportar PDF / Imprimir</span>
+          <span>Imprimir / Salvar PDF</span>
         </button>
 
         <button
@@ -613,7 +649,7 @@
           class="py-3.5 px-3 rounded-2xl bg-[#e86f51] hover:bg-[#d45a3c] active:scale-95 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
         >
           <span>💾</span>
-          <span>Backup JSON</span>
+          <span>Exportar Backup JSON</span>
         </button>
       </div>
     </section>
@@ -764,6 +800,7 @@
       reportMode: 'diario', // 'diario' | 'semanal' | 'mensal'
       reportAnchorDate: new Date(),
       barChartInstance: null,
+      parentChartInstance: null,
     };
 
     // =========================================================================
@@ -802,15 +839,15 @@
 
     /**
      * Interpreta entradas de minutos com vírgula ou ponto representando segundos
-     * (ex.: "1,30" ou "1.30" -> 1.5 min; "2,30" -> 2.5 min; "3,30" -> 3.5 min)
-     * bem como decimais puros (ex.: "1.5", "1,5") e inteiros (ex.: "1", "4", "7", "8", "9").
+     * (ex.: "1,30" ou "2,30" -> 1.5 min / 2.5 min)
+     * bem como decimais diretos (ex.: "1.5" ou "1,5") e inteiros (ex.: "1", "4", "7").
      */
     function parseMinutesInput(val) {
       if (val === null || val === undefined) return NaN;
       const trimmed = String(val).trim();
       if (!trimmed) return NaN;
 
-      // Padrão M,SS ou M.SS com dois dígitos de segundos (00 a 59), ex.: "1,30", "1.30", "2,30", "3,30"
+      // Padrão M,SS ou M.SS com dois dígitos de segundos (00 a 59), ex.: "1,30", "2,30", "3,30"
       const minSecMatch = trimmed.match(/^(\d+)[,.]([0-5]\d)$/);
       if (minSecMatch) {
         const minsPart = parseInt(minSecMatch[1], 10);
@@ -824,8 +861,8 @@
     }
 
     /**
-     * Formata minutos de forma legível com horas, minutos e segundos quando houver fração:
-     * Ex.: 1.5 -> "1m 30s", 2.5 -> "2m 30s", 4 -> "4m", 65.5 -> "1h 05m 30s"
+     * Formata minutos de forma legível em "Xm Ys" (ou "Xh YYm ZZs" acima de 1 hora).
+     * Ex.: 1.5 -> "1m 30s", 2.5 -> "2m 30s", 4 -> "4m", 0 -> "0m"
      */
     function formatarMinutos(min) {
       const val = Number(min) || 0;
@@ -879,9 +916,28 @@
 
     function sortRecords(list) {
       return [...list].sort((a, b) => {
-        if (b.date !== a.date) return b.date.localeCompare(a.date);
+        if (b.data !== a.data) return b.data.localeCompare(a.data);
         return (b._createdMs || 0) - (a._createdMs || 0);
       });
+    }
+
+    // Normaliza documentos antigos ou novos para o esquema padrão
+    function normalizeRecord(id, raw) {
+      const createdMs =
+        raw.criadoEm && typeof raw.criadoEm.toMillis === 'function'
+          ? raw.criadoEm.toMillis()
+          : raw.createdAt && typeof raw.createdAt.toMillis === 'function'
+            ? raw.createdAt.toMillis()
+            : Number(raw.clientCreatedMs || raw._createdMs) || Date.now();
+
+      return {
+        id,
+        data: raw.data || raw.date || getLocalYMD(new Date()),
+        video: raw.video || raw.videoTitle || 'Vídeo sem título',
+        minutos: Number(raw.minutos ?? raw.minutes) || 0,
+        registradoPor: raw.registradoPor || raw.recordedBy || 'Pai',
+        _createdMs: createdMs,
+      };
     }
 
     // =========================================================================
@@ -896,7 +952,8 @@
         const raw = localStorage.getItem(getCacheKey(code));
         if (!raw) return [];
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? sortRecords(parsed) : [];
+        if (!Array.isArray(parsed)) return [];
+        return sortRecords(parsed.map((item) => normalizeRecord(item.id, item)));
       } catch (e) {
         console.warn('Falha ao ler cache local:', e);
         return [];
@@ -962,20 +1019,7 @@
         (snapshot) => {
           const cloudItems = [];
           snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const createdMs =
-              data.createdAt && typeof data.createdAt.toMillis === 'function'
-                ? data.createdAt.toMillis()
-                : Number(data.clientCreatedMs) || Date.now();
-
-            cloudItems.push({
-              id: docSnap.id,
-              date: data.date || getLocalYMD(new Date()),
-              videoTitle: data.videoTitle || 'Vídeo sem título',
-              minutes: Number(data.minutes) || 0,
-              recordedBy: data.recordedBy || 'Pai',
-              _createdMs: createdMs,
-            });
+            cloudItems.push(normalizeRecord(docSnap.id, docSnap.data()));
           });
 
           const localPending = loadRecordsFromLocalCache(code).filter((item) =>
@@ -996,7 +1040,7 @@
       );
     }
 
-    async function persistNewRecord({ date, videoTitle, minutes, recordedBy }) {
+    async function persistNewRecord({ data, video, minutos, registradoPor }) {
       const code = state.familyCode;
       const clientCreatedMs = Date.now();
       setSyncStatus('saving');
@@ -1004,12 +1048,12 @@
       try {
         const registrosCol = collection(db, 'tv_families', code, 'registros');
         await addDoc(registrosCol, {
-          date,
-          videoTitle,
-          minutes,
-          recordedBy,
+          data,
+          video,
+          minutos,
+          registradoPor,
           clientCreatedMs,
-          createdAt: serverTimestamp(),
+          criadoEm: serverTimestamp(),
         });
         setSyncStatus('cloud');
         return { synced: true };
@@ -1017,10 +1061,10 @@
         console.warn('Falha ao gravar na nuvem, salvando no cache local:', err);
         const fallbackItem = {
           id: `local_${clientCreatedMs}`,
-          date,
-          videoTitle,
-          minutes,
-          recordedBy,
+          data,
+          video,
+          minutos,
+          registradoPor,
           _createdMs: clientCreatedMs,
         };
         const updated = sortRecords([fallbackItem, ...state.records]);
@@ -1065,6 +1109,7 @@
       state.profile = role;
       localStorage.setItem(STORAGE_KEYS.PROFILE, role);
       updateProfileUI(true);
+      updateTimerDisplay();
     };
 
     function updateProfileUI(showFeedback) {
@@ -1079,9 +1124,14 @@
         btnPai.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 text-slate-300 hover:text-white';
       }
 
+      const roleBadge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
+      const saveBtnText = document.getElementById('btn-save-tv-text');
+      if (saveBtnText) {
+        saveBtnText.textContent = `Salvar Registro (como ${roleBadge})`;
+      }
+
       if (showFeedback) {
-        const badge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
-        showToast(`Perfil ativo neste aparelho: ${badge}`, state.profile === 'Pai' ? '👨' : '👩');
+        showToast(`Perfil ativo neste aparelho: ${roleBadge}`, state.profile === 'Pai' ? '👨' : '👩');
       }
     }
 
@@ -1282,10 +1332,10 @@
 
       if (captionEl) {
         if (!Number.isFinite(val) || val <= 0) {
-          captionEl.textContent = '⏱️ Duração: 0m';
+          captionEl.textContent = '⏱️ 0m';
           captionEl.className = 'text-xs font-medium text-slate-400 text-center mt-1.5';
         } else {
-          captionEl.textContent = `⏱️ Duração: ${formatarMinutos(val)}`;
+          captionEl.textContent = `⏱️ ${formatarMinutos(val)}`;
           captionEl.className = 'text-xs font-extrabold text-[#1e3a5f] text-center mt-1.5';
         }
       }
@@ -1295,7 +1345,6 @@
     window.selectQuickMinutes = function (label, val) {
       const input = document.getElementById('reg-minutes-input');
       if (!input) return;
-      // Exibe no formato amigável ("1,30", "2,30", "3,30" ou inteiro "1", "4"...)
       input.value = label.replace(/m$/, '');
       updateMinutesCaption();
     };
@@ -1315,15 +1364,15 @@
       const minutesInput = document.getElementById('reg-minutes-input');
       const saveBtn = document.getElementById('btn-save-tv');
 
-      const videoTitle = videoInput.value.trim();
-      if (!videoTitle) {
+      const video = videoInput.value.trim();
+      if (!video) {
         showToast('Digite ou selecione qual vídeo a Laís assistiu.', '📺');
         videoInput.focus();
         return;
       }
 
-      const minutes = parseMinutesInput(minutesInput.value);
-      if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 720) {
+      const minutos = parseMinutesInput(minutesInput.value);
+      if (!Number.isFinite(minutos) || minutos <= 0 || minutos > 720) {
         showToast('Informe uma duração válida em minutos (ex.: 1,30 ou 4).', '⏱️');
         minutesInput.focus();
         return;
@@ -1331,10 +1380,10 @@
 
       saveBtn.disabled = true;
       const result = await persistNewRecord({
-        date: state.regDate,
-        videoTitle,
-        minutes,
-        recordedBy: state.profile,
+        data: state.regDate,
+        video,
+        minutos,
+        registradoPor: state.profile,
       });
       saveBtn.disabled = false;
 
@@ -1343,11 +1392,11 @@
       renderVideoSuggestionChips();
       updateMinutesCaption();
 
-      const formatted = formatarMinutos(minutes);
+      const formatted = formatarMinutos(minutos);
       showToast(
         result.synced
-          ? `📺 "${videoTitle}" (${formatted}) salvo!`
-          : `📺 "${videoTitle}" (${formatted}) salvo localmente!`,
+          ? `📺 "${video}" (${formatted}) salvo!`
+          : `📺 "${video}" (${formatted}) salvo localmente!`,
         '🎉'
       );
     };
@@ -1360,8 +1409,8 @@
         title: 'Excluir registro de TV?',
         bodyHtml: `
           <p>
-            Deseja remover <strong>"${escapeHtml(rec.videoTitle)}" (${formatarMinutos(rec.minutes)})</strong>
-            registrado por <strong>${escapeHtml(rec.recordedBy)}</strong>?
+            Deseja remover <strong>"${escapeHtml(rec.video)}" (${formatarMinutos(rec.minutos)})</strong>
+            registrado por <strong>${escapeHtml(rec.registradoPor)}</strong>?
           </p>
         `,
         actions: [
@@ -1387,8 +1436,8 @@
       const countBadge = document.getElementById('day-summary-count-badge');
       const listEl = document.getElementById('daily-records-list');
 
-      const dayRecords = state.records.filter((r) => r.date === state.regDate);
-      const totalMins = roundMins(dayRecords.reduce((sum, r) => sum + (Number(r.minutes) || 0), 0));
+      const dayRecords = state.records.filter((r) => r.data === state.regDate);
+      const totalMins = roundMins(dayRecords.reduce((sum, r) => sum + (Number(r.minutos) || 0), 0));
       const count = dayRecords.length;
 
       labelEl.textContent = `Total no dia (${formatHumanDate(state.regDate)})`;
@@ -1406,7 +1455,7 @@
 
       listEl.innerHTML = dayRecords
         .map((rec) => {
-          const isMae = rec.recordedBy === 'Mãe';
+          const isMae = rec.registradoPor === 'Mãe';
 
           return `
             <div class="bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80 flex items-center justify-between gap-3">
@@ -1416,11 +1465,11 @@
                 </span>
                 <div class="min-w-0">
                   <p class="text-sm font-extrabold text-slate-900 break-words leading-snug">
-                    ${escapeHtml(rec.videoTitle)}
+                    ${escapeHtml(rec.video)}
                   </p>
                   <div class="mt-1">
                     <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      isMae ? 'bg-pink-50 text-pink-700' : 'bg-[#1e3a5f]/10 text-[#1e3a5f]'
+                      isMae ? 'bg-[#fdf1ee] text-[#e86f51]' : 'bg-[#1e3a5f]/10 text-[#1e3a5f]'
                     }">
                       ${isMae ? '👩 Mãe' : '👨 Pai'}
                     </span>
@@ -1430,7 +1479,7 @@
 
               <div class="flex items-center gap-2 shrink-0">
                 <span class="text-xs font-extrabold text-[#e86f51] bg-[#fdf1ee] border border-[#e86f51]/30 px-2.5 py-1.5 rounded-xl">
-                  ${formatarMinutos(rec.minutes)}
+                  ${formatarMinutos(rec.minutos)}
                 </span>
                 <button
                   type="button"
@@ -1514,47 +1563,48 @@
           ? `Será salvo como ${formatarMinutos(decimalMins)}`
           : '0m acumulados';
 
+      const roleBadge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
       document.getElementById('btn-timer-save-label').textContent =
-        decimalMins > 0 ? `Salvar no Diário (${formatarMinutos(decimalMins)})` : 'Salvar no Diário';
+        decimalMins > 0
+          ? `Salvar no Diário (${formatarMinutos(decimalMins)} · ${roleBadge})`
+          : `Salvar no Diário (como ${roleBadge})`;
 
-      const btnToggle = document.getElementById('btn-timer-toggle');
+      const btnStart = document.getElementById('btn-timer-start');
+      const btnPause = document.getElementById('btn-timer-pause');
       const dot = document.getElementById('sw-dot');
       const label = document.getElementById('sw-status-label');
       const navDot = document.getElementById('nav-timer-live-dot');
 
       if (state.timerRunning) {
-        btnToggle.className = 'py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all';
-        btnToggle.textContent = '⏸ Pausar';
+        btnStart.disabled = true;
+        btnStart.classList.add('opacity-45');
+        btnPause.disabled = false;
+        btnPause.classList.remove('opacity-45');
         dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping';
         label.textContent = 'Cronometrando tempo de TV...';
         navDot.classList.remove('hidden');
       } else {
-        btnToggle.className = 'py-3.5 rounded-2xl bg-[#1e3a5f] hover:bg-[#152a45] active:scale-95 text-white font-extrabold text-sm shadow-xs transition-all';
-        btnToggle.textContent = elapsedMs > 0 ? '▶ Retomar' : '▶ Iniciar';
+        btnStart.disabled = false;
+        btnStart.classList.remove('opacity-45');
+        btnStart.textContent = elapsedMs > 0 ? '▶ Retomar' : '▶ Iniciar';
+        btnPause.disabled = true;
+        btnPause.classList.add('opacity-45');
         dot.className = elapsedMs > 0 ? 'w-2 h-2 rounded-full bg-amber-500' : 'w-2 h-2 rounded-full bg-slate-400';
         label.textContent = elapsedMs > 0 ? 'Pausado' : 'Aguardando início';
         navDot.classList.add('hidden');
       }
     }
 
-    window.toggleTimer = function () {
-      if (state.timerRunning) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-    };
-
-    function startTimer() {
+    window.startTimer = function () {
       if (state.timerRunning) return;
       state.timerRunning = true;
       state.timerStartedAt = Date.now();
       persistTimerToStorage();
       startTimerInterval();
       updateTimerDisplay();
-    }
+    };
 
-    function pauseTimer() {
+    window.pauseTimer = function () {
       if (!state.timerRunning) return;
       state.timerAccumulatedMs += Date.now() - state.timerStartedAt;
       state.timerRunning = false;
@@ -1562,7 +1612,7 @@
       if (state.timerIntervalId) clearInterval(state.timerIntervalId);
       persistTimerToStorage();
       updateTimerDisplay();
-    }
+    };
 
     window.resetTimer = function () {
       state.timerRunning = false;
@@ -1581,8 +1631,8 @@
       }
 
       const videoInput = document.getElementById('sw-video-input');
-      const videoTitle = videoInput.value.trim();
-      if (!videoTitle) {
+      const video = videoInput.value.trim();
+      if (!video) {
         showToast('Digite ou selecione qual vídeo a Laís assistiu.', '📺');
         videoInput.focus();
         return;
@@ -1592,14 +1642,14 @@
         pauseTimer();
       }
 
-      const minutesToSave = Math.max(0.05, roundMins(totalSeconds / 60));
+      const minutosToSave = Math.max(0.05, roundMins(totalSeconds / 60));
       const todayYmd = getLocalYMD(new Date());
 
       const result = await persistNewRecord({
-        date: todayYmd,
-        videoTitle,
-        minutes: minutesToSave,
-        recordedBy: state.profile,
+        data: todayYmd,
+        video,
+        minutos: minutosToSave,
+        registradoPor: state.profile,
       });
 
       videoInput.value = '';
@@ -1609,17 +1659,17 @@
       state.regDate = todayYmd;
       syncDateUI();
 
-      const formatted = formatarMinutos(minutesToSave);
+      const formatted = formatarMinutos(minutosToSave);
       showToast(
         result.synced
-          ? `📺 "${videoTitle}" (${formatted}) salvo!`
-          : `📺 "${videoTitle}" (${formatted}) salvo localmente!`,
+          ? `📺 "${video}" (${formatted}) salvo!`
+          : `📺 "${video}" (${formatted}) salvo localmente!`,
         '🎉'
       );
     };
 
     // =========================================================================
-    // 9. ABA 3: 📊 RELATÓRIOS (DIÁRIO, SEMANAL, MENSAL + CHART.JS + RANKING)
+    // 9. ABA 3: 📊 RELATÓRIOS (DIÁRIO, SEMANAL, MENSAL + 2 GRÁFICOS CHART.JS)
     // =========================================================================
     window.setReportMode = function (mode) {
       state.reportMode = mode;
@@ -1667,7 +1717,7 @@
         periodLabel = isCurrentPeriod
           ? `Hoje · ${anchor.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`
           : anchor.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-        periodRecords = state.records.filter((r) => r.date === ymd);
+        periodRecords = state.records.filter((r) => r.data === ymd);
         daysInPeriod = 1;
       } else if (state.reportMode === 'semanal') {
         weekMonday = getWeekMonday(anchor);
@@ -1681,7 +1731,7 @@
         const a = weekMonday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
         const b = weekSunday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
         periodLabel = `${a} – ${b}`;
-        periodRecords = state.records.filter((r) => r.date >= monStr && r.date <= sunStr);
+        periodRecords = state.records.filter((r) => r.data >= monStr && r.data <= sunStr);
         daysInPeriod = 7;
       } else {
         const year = anchor.getFullYear();
@@ -1690,7 +1740,7 @@
         const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
         const rawMonth = anchor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
         periodLabel = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
-        periodRecords = state.records.filter((r) => r.date.startsWith(prefix));
+        periodRecords = state.records.filter((r) => r.data.startsWith(prefix));
         daysInPeriod = new Date(year, month + 1, 0).getDate();
       }
 
@@ -1709,13 +1759,13 @@
       if (isCurrentPeriod) jumpBtn.classList.add('hidden');
       else jumpBtn.classList.remove('hidden');
 
-      const totalMins = roundMins(periodRecords.reduce((sum, r) => sum + (Number(r.minutes) || 0), 0));
+      const totalMins = roundMins(periodRecords.reduce((sum, r) => sum + (Number(r.minutos) || 0), 0));
       const avgDailyMins = roundMins(totalMins / daysInPeriod);
 
-      // Ranking agrupado por título de vídeo
+      // Ranking agrupado por desenho
       const videoRankingMap = new Map();
       periodRecords.forEach((rec) => {
-        const cleanTitle = (rec.videoTitle || 'Vídeo sem título').trim();
+        const cleanTitle = (rec.video || 'Vídeo sem título').trim();
         const key = cleanTitle.toLowerCase();
         if (!videoRankingMap.has(key)) {
           videoRankingMap.set(key, {
@@ -1726,7 +1776,7 @@
         }
         const entry = videoRankingMap.get(key);
         entry.title = cleanTitle;
-        entry.minutes = roundMins(entry.minutes + (Number(rec.minutes) || 0));
+        entry.minutes = roundMins(entry.minutes + (Number(rec.minutos) || 0));
         entry.count += 1;
       });
 
@@ -1735,23 +1785,16 @@
       );
       const topVideo = videoRanking[0] || null;
 
-      // Card 1: Total Assistido
+      // KPI 1: Total Assistido
       document.getElementById('kpi-total-primary').textContent = formatarMinutos(totalMins);
       document.getElementById('kpi-total-secondary').textContent = formatHoursSummary(totalMins);
 
-      // Card 2: Sessões (no modo diário) ou Média Diária (nos modos semanal/mensal)
-      if (state.reportMode === 'diario') {
-        document.getElementById('kpi-middle-title').textContent = 'Sessões';
-        document.getElementById('kpi-middle-primary').textContent = String(periodRecords.length);
-        document.getElementById('kpi-middle-secondary').textContent =
-          periodRecords.length === 1 ? 'vídeo no dia' : 'vídeos no dia';
-      } else {
-        document.getElementById('kpi-middle-title').textContent = 'Média Diária';
-        document.getElementById('kpi-middle-primary').textContent = formatarMinutos(avgDailyMins);
-        document.getElementById('kpi-middle-secondary').textContent = `média / ${daysInPeriod}d`;
-      }
+      // KPI 2: Média Diária
+      document.getElementById('kpi-avg-primary').textContent = formatarMinutos(avgDailyMins);
+      document.getElementById('kpi-avg-secondary').textContent =
+        state.reportMode === 'diario' ? 'no dia' : `média / ${daysInPeriod}d`;
 
-      // Card 3: Mais Assistido
+      // KPI 3: Desenho Mais Assistido
       if (topVideo) {
         document.getElementById('kpi-top-video').textContent = topVideo.title;
         document.getElementById('kpi-top-video-mins').textContent = `${formatarMinutos(topVideo.minutes)} (${topVideo.count}x)`;
@@ -1760,7 +1803,13 @@
         document.getElementById('kpi-top-video-mins').textContent = '0m';
       }
 
+      // Renderiza Gráfico 1 (Tempo Assistido por Dia / por Vídeo)
       renderChartJsBar(periodRecords, weekMonday, videoRanking);
+
+      // Renderiza Gráfico 2 (Tempo Assistido: Pai vs. Mãe)
+      renderParentComparisonChart(periodRecords, weekMonday);
+
+      // Renderiza Ranking e Histórico Detalhado
       renderVideosRanking(videoRanking, totalMins);
       renderDetailedHistory(periodRecords);
     }
@@ -1773,11 +1822,10 @@
 
       let labels = [];
       let values = [];
-      let barColor = '#e86f51';
+      const barColor = '#e86f51';
 
       if (state.reportMode === 'diario') {
-        titleEl.textContent = 'Tempo Assistido por Vídeo';
-        barColor = '#e86f51';
+        titleEl.textContent = 'TEMPO ASSISTIDO POR VÍDEO (DIA)';
         if (videoRanking.length === 0) {
           labels = ['Sem registros'];
           values = [0];
@@ -1788,8 +1836,7 @@
           values = videoRanking.map((v) => v.minutes);
         }
       } else if (state.reportMode === 'semanal' && weekMonday) {
-        titleEl.textContent = 'Tempo Assistido por Dia (Seg a Dom)';
-        barColor = '#1e3a5f';
+        titleEl.textContent = 'TEMPO ASSISTIDO POR DIA (SEG A DOM)';
         const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         for (let i = 0; i < 7; i++) {
           const d = new Date(weekMonday);
@@ -1797,15 +1844,14 @@
           const ymd = getLocalYMD(d);
           const mins = roundMins(
             periodRecords
-              .filter((r) => r.date === ymd)
-              .reduce((sum, r) => sum + (Number(r.minutes) || 0), 0)
+              .filter((r) => r.data === ymd)
+              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
           );
           labels.push(`${dayNames[i]} ${d.getDate()}`);
           values.push(mins);
         }
       } else {
-        titleEl.textContent = 'Tempo Assistido por Dia do Mês';
-        barColor = '#1e3a5f';
+        titleEl.textContent = 'TEMPO ASSISTIDO POR DIA DO MÊS';
         const year = state.reportAnchorDate.getFullYear();
         const month = state.reportAnchorDate.getMonth();
         const daysCount = new Date(year, month + 1, 0).getDate();
@@ -1813,8 +1859,8 @@
           const ymd = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const mins = roundMins(
             periodRecords
-              .filter((r) => r.date === ymd)
-              .reduce((sum, r) => sum + (Number(r.minutes) || 0), 0)
+              .filter((r) => r.data === ymd)
+              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
           );
           labels.push(String(day));
           values.push(mins);
@@ -1882,13 +1928,250 @@
       });
     }
 
+    /**
+     * GRÁFICO 2 NOVO: TEMPO ASSISTIDO: PAI VS. MÃE
+     * Compara os minutos registrados por Pai (#1e3a5f) e Mãe (#e86f51)
+     * em Diário, Semanal (Seg a Dom) e Mensal (dias 1 a 30/31).
+     */
+    function renderParentComparisonChart(periodRecords, weekMonday) {
+      const badgePai = document.getElementById('badge-total-pai');
+      const badgeMae = document.getElementById('badge-total-mae');
+      const canvas = document.getElementById('tv-parent-chart');
+      if (!canvas) return;
+
+      const totalPaiMins = roundMins(
+        periodRecords
+          .filter((r) => r.registradoPor !== 'Mãe')
+          .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
+      );
+      const totalMaeMins = roundMins(
+        periodRecords
+          .filter((r) => r.registradoPor === 'Mãe')
+          .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
+      );
+
+      if (badgePai) badgePai.textContent = `👨 Pai: ${formatarMinutos(totalPaiMins)}`;
+      if (badgeMae) badgeMae.textContent = `👩 Mãe: ${formatarMinutos(totalMaeMins)}`;
+
+      if (state.parentChartInstance) {
+        state.parentChartInstance.destroy();
+        state.parentChartInstance = null;
+      }
+
+      if (typeof Chart === 'undefined') return;
+
+      const ctx = canvas.getContext('2d');
+
+      if (state.reportMode === 'diario') {
+        // Plugin leve para exibir o rótulo "Xm Ys" diretamente acima das barras no modo Diário
+        const dailyValueLabelsPlugin = {
+          id: 'dailyValueLabelsPlugin',
+          afterDatasetsDraw(chart) {
+            const { ctx: c } = chart;
+            c.save();
+            c.font = '800 11px Inter, sans-serif';
+            c.textAlign = 'center';
+            c.textBaseline = 'bottom';
+
+            const meta = chart.getDatasetMeta(0);
+            meta.data.forEach((bar, index) => {
+              const rawVal = chart.data.datasets[0].data[index] || 0;
+              c.fillStyle = index === 0 ? '#1e3a5f' : '#e86f51';
+              c.fillText(formatarMinutos(rawVal), bar.x, bar.y - 5);
+            });
+            c.restore();
+          },
+        };
+
+        const maxVal = Math.max(totalPaiMins, totalMaeMins, 1);
+
+        state.parentChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['👨 Pai', '👩 Mãe'],
+            datasets: [
+              {
+                label: 'Tempo assistido',
+                data: [totalPaiMins, totalMaeMins],
+                backgroundColor: ['#1e3a5f', '#e86f51'],
+                borderRadius: 10,
+                maxBarThickness: 56,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+              padding: { top: 20 },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (context) => ` ${context.label}: ${formatarMinutos(context.parsed.y)}`,
+                },
+              },
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: {
+                  color: '#1e3a5f',
+                  font: { family: 'Inter', size: 12, weight: '800' },
+                },
+              },
+              y: {
+                beginAtZero: true,
+                suggestedMax: maxVal * 1.18,
+                border: { display: false },
+                grid: { color: '#F1F5F9' },
+                ticks: {
+                  color: '#94A3B8',
+                  font: { family: 'Inter', size: 10, weight: '600' },
+                },
+              },
+            },
+          },
+          plugins: [dailyValueLabelsPlugin],
+        });
+        return;
+      }
+
+      // Modos Semanal (Seg a Dom) e Mensal (dias 1 a 30/31): barras agrupadas Pai vs. Mãe
+      const labels = [];
+      const paiSeries = [];
+      const maeSeries = [];
+
+      if (state.reportMode === 'semanal' && weekMonday) {
+        const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(weekMonday);
+          d.setDate(weekMonday.getDate() + i);
+          const ymd = getLocalYMD(d);
+          const dayRecs = periodRecords.filter((r) => r.data === ymd);
+
+          const pMins = roundMins(
+            dayRecs
+              .filter((r) => r.registradoPor !== 'Mãe')
+              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
+          );
+          const mMins = roundMins(
+            dayRecs
+              .filter((r) => r.registradoPor === 'Mãe')
+              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
+          );
+
+          labels.push(`${dayNames[i]} ${d.getDate()}`);
+          paiSeries.push(pMins);
+          maeSeries.push(mMins);
+        }
+      } else {
+        const year = state.reportAnchorDate.getFullYear();
+        const month = state.reportAnchorDate.getMonth();
+        const daysCount = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= daysCount; day++) {
+          const ymd = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dayRecs = periodRecords.filter((r) => r.data === ymd);
+
+          const pMins = roundMins(
+            dayRecs
+              .filter((r) => r.registradoPor !== 'Mãe')
+              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
+          );
+          const mMins = roundMins(
+            dayRecs
+              .filter((r) => r.registradoPor === 'Mãe')
+              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
+          );
+
+          labels.push(String(day));
+          paiSeries.push(pMins);
+          maeSeries.push(mMins);
+        }
+      }
+
+      state.parentChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '👨 Pai',
+              data: paiSeries,
+              backgroundColor: '#1e3a5f',
+              borderRadius: 4,
+              maxBarThickness: 18,
+            },
+            {
+              label: '👩 Mãe',
+              data: maeSeries,
+              backgroundColor: '#e86f51',
+              borderRadius: 4,
+              maxBarThickness: 18,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: {
+                usePointStyle: true,
+                pointStyle: 'circle',
+                boxWidth: 8,
+                boxHeight: 8,
+                padding: 12,
+                color: '#334155',
+                font: { family: 'Inter', size: 11, weight: '700' },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` ${context.dataset.label}: ${formatarMinutos(context.parsed.y)}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: '#64748B',
+                font: { family: 'Inter', size: 10, weight: '600' },
+                maxRotation: 0,
+                autoSkip: state.reportMode === 'mensal',
+                maxTicksLimit: state.reportMode === 'mensal' ? 10 : 7,
+              },
+            },
+            y: {
+              beginAtZero: true,
+              border: { display: false },
+              grid: { color: '#F1F5F9' },
+              ticks: {
+                color: '#94A3B8',
+                font: { family: 'Inter', size: 10, weight: '600' },
+              },
+            },
+          },
+        },
+      });
+    }
+
     function renderVideosRanking(videoRanking, totalMins) {
       const container = document.getElementById('rep-videos-ranking');
       const countEl = document.getElementById('rep-ranking-total-titles');
       countEl.textContent = `${videoRanking.length} título(s)`;
 
       if (videoRanking.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum vídeo assistido neste período.</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum desenho assistido neste período.</p>`;
         return;
       }
 
@@ -1932,28 +2215,28 @@
 
       container.innerHTML = periodRecords
         .map((rec) => {
-          const dateFormatted = parseLocalYMD(rec.date).toLocaleDateString('pt-BR', {
+          const dateFormatted = parseLocalYMD(rec.data).toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
           });
-          const isMae = rec.recordedBy === 'Mãe';
+          const isMae = rec.registradoPor === 'Mãe';
 
           return `
             <div class="py-3 flex items-center justify-between gap-2 text-xs">
               <div class="min-w-0 pr-2">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-mono font-bold text-slate-400">${dateFormatted}</span>
-                  <span class="font-extrabold text-slate-900 truncate">${escapeHtml(rec.videoTitle)}</span>
+                  <span class="font-extrabold text-slate-900 truncate">${escapeHtml(rec.video)}</span>
                 </div>
                 <div class="mt-1">
-                  <span class="text-[10px] font-bold ${isMae ? 'text-pink-600' : 'text-[#1e3a5f]'}">
+                  <span class="text-[10px] font-bold ${isMae ? 'text-[#e86f51]' : 'text-[#1e3a5f]'}">
                     ${isMae ? '👩 Mãe' : '👨 Pai'}
                   </span>
                 </div>
               </div>
 
               <span class="font-extrabold text-[#1e3a5f] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
-                ${formatarMinutos(rec.minutes)}
+                ${formatarMinutos(rec.minutos)}
               </span>
             </div>
           `;
