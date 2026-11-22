@@ -248,19 +248,21 @@
         </div>
       </div>
 
-      <!-- Card 2: Nome do Vídeo / Desenho + 8 Botões Rápidos -->
+      <!-- Card 2: Nome do Vídeo / Desenho + 8 Botões Rápidos + Autocompletar -->
       <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div>
           <label for="reg-video-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
             Qual vídeo ou desenho ela assistiu? *
           </label>
-          <div class="relative">
+          <div class="relative" id="reg-video-autocomplete-wrap">
             <input
               type="text"
               id="reg-video-input"
               maxlength="90"
+              autocomplete="off"
               oninput="handleRegVideoInput()"
-              placeholder="Digite ou toque em um desenho abaixo..."
+              onfocus="handleRegVideoInput()"
+              placeholder="Digite (3+ letras para sugestões) ou toque abaixo..."
               class="w-full bg-slate-50 border-2 border-slate-200 focus:border-[#1e3a5f] rounded-2xl px-4 py-3.5 pr-11 text-sm font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 focus:outline-none transition-colors"
             />
             <button
@@ -272,6 +274,14 @@
             >
               ✕
             </button>
+
+            <!-- Lista de Autocompletar (aparece a partir de 3 caracteres digitados) -->
+            <div
+              id="reg-video-autocomplete"
+              class="hidden absolute left-0 right-0 top-full mt-1.5 z-40 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-60 overflow-y-auto divide-y divide-slate-100"
+              role="listbox"
+              aria-label="Sugestões de vídeos já assistidos"
+            ></div>
           </div>
         </div>
 
@@ -367,19 +377,21 @@
     <!-- =================================================================== -->
     <section id="view-cronometro" class="hidden space-y-4 panel-enter">
 
-      <!-- Card Vídeo/Desenho + 8 Botões Rápidos -->
+      <!-- Card Vídeo/Desenho + 8 Botões Rápidos + Autocompletar -->
       <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div>
           <label for="sw-video-input" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
             Qual vídeo ou desenho está passando?
           </label>
-          <div class="relative">
+          <div class="relative" id="sw-video-autocomplete-wrap">
             <input
               type="text"
               id="sw-video-input"
               maxlength="90"
+              autocomplete="off"
               oninput="handleSwVideoInput()"
-              placeholder="Digite ou toque em um desenho abaixo..."
+              onfocus="handleSwVideoInput()"
+              placeholder="Digite (3+ letras para sugestões) ou toque abaixo..."
               class="w-full bg-slate-50 border-2 border-slate-200 focus:border-[#1e3a5f] rounded-2xl px-4 py-3 pr-11 text-sm font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-400 focus:outline-none transition-colors"
             />
             <button
@@ -391,6 +403,14 @@
             >
               ✕
             </button>
+
+            <!-- Lista de Autocompletar no Cronômetro (a partir de 3 caracteres) -->
+            <div
+              id="sw-video-autocomplete"
+              class="hidden absolute left-0 right-0 top-full mt-1.5 z-40 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden max-h-60 overflow-y-auto divide-y divide-slate-100"
+              role="listbox"
+              aria-label="Sugestões de vídeos já assistidos"
+            ></div>
           </div>
         </div>
 
@@ -577,7 +597,7 @@
         </div>
       </div>
 
-      <!-- GRÁFICO 2 NOVO (Chart.js): TEMPO ASSISTIDO: PAI VS. MÃE -->
+      <!-- GRÁFICO 2 (Chart.js): TEMPO ASSISTIDO: PAI VS. MÃE -->
       <div class="print-card bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -717,6 +737,7 @@
       collection,
       doc,
       addDoc,
+      setDoc,
       deleteDoc,
       onSnapshot,
       serverTimestamp
@@ -771,40 +792,11 @@
       PROFILE: 'tv_lais_profile',
       TIMER: 'tv_lais_timer_state',
       CACHE_PREFIX: 'tv_lais_records_cache_',
+      VIDEO_HISTORY_PREFIX: 'tv_lais_video_history_',
     };
 
     // =========================================================================
-    // 3. ESTADO DA APLICAÇÃO
-    // =========================================================================
-    const state = {
-      familyCode: (localStorage.getItem(STORAGE_KEYS.FAMILY_CODE) || 'LAIS-HOME').trim().toUpperCase(),
-      profile: localStorage.getItem(STORAGE_KEYS.PROFILE) === 'Mãe' ? 'Mãe' : 'Pai',
-      activeTab: 'registrar',
-
-      // Registros sincronizados (Firestore + fallback cache localStorage)
-      records: [],
-      cloudConnected: false,
-      unsubRecords: null,
-
-      // Aba Registrar
-      regDate: getLocalYMD(new Date()),
-
-      // Aba Cronômetro
-      timerRunning: false,
-      timerStartedAt: null,
-      timerAccumulatedMs: 0,
-      timerVideoTitle: '',
-      timerIntervalId: null,
-
-      // Aba Relatórios
-      reportMode: 'diario', // 'diario' | 'semanal' | 'mensal'
-      reportAnchorDate: new Date(),
-      barChartInstance: null,
-      parentChartInstance: null,
-    };
-
-    // =========================================================================
-    // 4. UTILITÁRIOS DE DATA, PARSE INTELIGENTE E FORMATAÇÃO DE MINUTOS
+    // 3. UTILITÁRIOS DE DATA, MINUTOS/SEGUNDOS E SEGURANÇA HTML
     // =========================================================================
     function getLocalYMD(dateObj) {
       const y = dateObj.getFullYear();
@@ -814,8 +806,8 @@
     }
 
     function parseLocalYMD(ymd) {
-      const [y, m, d] = ymd.split('-').map(Number);
-      return new Date(y, m - 1, d, 12, 0, 0);
+      const [y, m, d] = String(ymd).split('-').map(Number);
+      return new Date(y, (m || 1) - 1, d || 1, 12, 0, 0);
     }
 
     function formatHumanDate(ymd) {
@@ -833,76 +825,62 @@
       });
     }
 
-    function roundMins(val) {
-      return Math.round((Number(val) || 0) * 1000) / 1000;
-    }
-
-    /**
-     * Interpreta entradas de minutos com vírgula ou ponto representando segundos
-     * (ex.: "1,30" ou "2,30" -> 1.5 min / 2.5 min)
-     * bem como decimais diretos (ex.: "1.5" ou "1,5") e inteiros (ex.: "1", "4", "7").
-     */
-    function parseMinutesInput(val) {
-      if (val === null || val === undefined) return NaN;
-      const trimmed = String(val).trim();
-      if (!trimmed) return NaN;
-
-      // Padrão M,SS ou M.SS com dois dígitos de segundos (00 a 59), ex.: "1,30", "2,30", "3,30"
-      const minSecMatch = trimmed.match(/^(\d+)[,.]([0-5]\d)$/);
-      if (minSecMatch) {
-        const minsPart = parseInt(minSecMatch[1], 10);
-        const secsPart = parseInt(minSecMatch[2], 10);
-        return roundMins(minsPart + secsPart / 60);
-      }
-
-      const normalized = trimmed.replace(',', '.');
-      const parsed = parseFloat(normalized);
-      return Number.isFinite(parsed) ? roundMins(parsed) : NaN;
-    }
-
-    /**
-     * Formata minutos de forma legível em "Xm Ys" (ou "Xh YYm ZZs" acima de 1 hora).
-     * Ex.: 1.5 -> "1m 30s", 2.5 -> "2m 30s", 4 -> "4m", 0 -> "0m"
-     */
-    function formatarMinutos(min) {
-      const val = Number(min) || 0;
-      if (val <= 0) return '0m';
-
-      const totalSec = Math.round(val * 60);
-      const hrs = Math.floor(totalSec / 3600);
-      const rem = totalSec % 3600;
-      const mins = Math.floor(rem / 60);
-      const secs = rem % 60;
-
-      if (hrs > 0) {
-        const mm = String(mins).padStart(2, '0');
-        if (secs > 0) {
-          const ss = String(secs).padStart(2, '0');
-          return `${hrs}h ${mm}m ${ss}s`;
-        }
-        return `${hrs}h ${mm}m`;
-      }
-
-      if (secs > 0) {
-        return mins > 0 ? `${mins}m ${String(secs).padStart(2, '0')}s` : `${secs}s`;
-      }
-
-      return `${mins}m`;
-    }
-
-    function formatHoursSummary(totalMins) {
-      const totalSec = Math.round((Number(totalMins) || 0) * 60);
-      const h = Math.floor(totalSec / 3600);
-      const m = Math.floor((totalSec % 3600) / 60);
-      return `${h}h ${String(m).padStart(2, '0')}m`;
-    }
-
     function getWeekMonday(dateObj) {
       const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 12, 0, 0);
       const day = d.getDay();
       const diff = day === 0 ? -6 : 1 - day;
       d.setDate(d.getDate() + diff);
       return d;
+    }
+
+    function roundMins(val) {
+      return Math.round((Number(val) || 0) * 10000) / 10000;
+    }
+
+    /**
+     * Interpreta valores digitados como "1,30" ou "2.30" (1 min 30 seg = 1.5 min)
+     * e também decimais diretos como "1,5" ou "1.5" (= 1.5 min) e inteiros ("4").
+     */
+    function parseMinutesInput(raw) {
+      if (raw === null || raw === undefined) return NaN;
+      const cleaned = String(raw).trim().replace(/m$/i, '').replace(',', '.');
+      if (!cleaned) return NaN;
+
+      const minSecMatch = cleaned.match(/^(\d+)\.(\d{2})$/);
+      if (minSecMatch) {
+        const mins = parseInt(minSecMatch[1], 10);
+        const secs = parseInt(minSecMatch[2], 10);
+        if (secs < 60) {
+          return roundMins(mins + secs / 60);
+        }
+      }
+
+      const num = parseFloat(cleaned);
+      return Number.isFinite(num) ? roundMins(num) : NaN;
+    }
+
+    function formatarMinutos(totalMins) {
+      const totalSeconds = Math.round((Number(totalMins) || 0) * 60);
+      if (totalSeconds <= 0) return '0m';
+
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+
+      if (hrs > 0) {
+        if (secs > 0) return `${hrs}h ${String(mins).padStart(2, '0')}m ${secs}s`;
+        return `${hrs}h ${String(mins).padStart(2, '0')}m`;
+      }
+      if (mins > 0 && secs > 0) return `${mins}m ${secs}s`;
+      if (mins > 0) return `${mins}m`;
+      return `${secs}s`;
+    }
+
+    function formatHoursSummary(totalMins) {
+      const totalSeconds = Math.round((Number(totalMins) || 0) * 60);
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      return `${hrs}h ${String(mins).padStart(2, '0')}m`;
     }
 
     function escapeHtml(value) {
@@ -914,6 +892,285 @@
         .replace(/'/g, '&#039;');
     }
 
+    function normalizeSearchText(value) {
+      return String(value ?? '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // =========================================================================
+    // 4. ESTADO GLOBAL DA APLICAÇÃO
+    // =========================================================================
+    const state = {
+      familyCode: (localStorage.getItem(STORAGE_KEYS.FAMILY_CODE) || 'LAIS-HOME').trim().toUpperCase(),
+      profile: localStorage.getItem(STORAGE_KEYS.PROFILE) === 'Mãe' ? 'Mãe' : 'Pai',
+      activeTab: 'registrar',
+
+      // Dados sincronizados em tempo real
+      records: [],
+      cloudVideoTitles: [],
+      cloudConnected: false,
+      unsubRecords: null,
+      unsubCatalog: null,
+
+      // Aba 1: Registrar
+      regDate: getLocalYMD(new Date()),
+
+      // Aba 2: Cronômetro
+      timerRunning: false,
+      timerStartedAt: null,
+      timerAccumulatedMs: 0,
+      timerVideoTitle: '',
+      timerIntervalId: null,
+
+      // Aba 3: Relatórios
+      reportMode: 'diario', // 'diario' | 'semanal' | 'mensal'
+      reportAnchorDate: new Date(),
+      barChartInstance: null,
+      parentChartInstance: null,
+    };
+
+    // =========================================================================
+    // 5. CATÁLOGO OCULTO SINCRONIZADO (NUVEM + LOCAL) E AUTOCOMPLETAR (3+ LETRAS)
+    // =========================================================================
+    function getVideoHistoryKey(code) {
+      return `${STORAGE_KEYS.VIDEO_HISTORY_PREFIX}${code}`;
+    }
+
+    function loadHiddenVideoHistory(code) {
+      try {
+        const raw = localStorage.getItem(getVideoHistoryKey(code));
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveHiddenVideoHistoryLocal(code, titlesArray) {
+      try {
+        localStorage.setItem(getVideoHistoryKey(code), JSON.stringify(titlesArray.slice(0, 400)));
+      } catch (e) {
+        console.warn('Falha ao salvar histórico oculto local:', e);
+      }
+    }
+
+    function rememberVideoTitle(title) {
+      const clean = String(title || '').trim();
+      if (!clean || clean === 'Vídeo sem título') return;
+
+      const code = state.familyCode;
+      const norm = normalizeSearchText(clean);
+
+      // 1) Salva imediatamente no cache local
+      const current = loadHiddenVideoHistory(code);
+      const filtered = current.filter((item) => normalizeSearchText(item) !== norm);
+      filtered.unshift(clean);
+      saveHiddenVideoHistoryLocal(code, filtered);
+
+      // 2) Salva também na nuvem (tv_families/{code}/catalogo_videos) para aparecer no celular do Pai e da Mãe
+      if (!norm) return;
+      const safeDocId = norm.replace(/[^a-z0-9_-]/g, '_').slice(0, 80) || 'video';
+      setDoc(
+        doc(db, 'tv_families', code, 'catalogo_videos', safeDocId),
+        {
+          titulo: clean,
+          atualizadoEm: serverTimestamp(),
+        },
+        { merge: true }
+      ).catch((err) => {
+        console.warn('Aviso ao sincronizar título no catálogo:', err?.code || err);
+      });
+    }
+
+    function syncAllRecordsToHiddenHistory(recordsList) {
+      if (!Array.isArray(recordsList) || recordsList.length === 0) return;
+      const code = state.familyCode;
+      const existing = loadHiddenVideoHistory(code);
+      const map = new Map();
+
+      existing.forEach((t) => {
+        const clean = String(t || '').trim();
+        if (clean) map.set(normalizeSearchText(clean), clean);
+      });
+
+      state.cloudVideoTitles.forEach((t) => {
+        const clean = String(t || '').trim();
+        if (clean) map.set(normalizeSearchText(clean), clean);
+      });
+
+      recordsList.forEach((rec) => {
+        const clean = String(rec.video || '').trim();
+        if (clean && clean !== 'Vídeo sem título') {
+          map.set(normalizeSearchText(clean), clean);
+        }
+      });
+
+      saveHiddenVideoHistoryLocal(code, Array.from(map.values()));
+    }
+
+    function getAllKnownVideoTitles() {
+      const catalog = new Map();
+
+      // 1) Títulos vindos dos registros sincronizados (Pai e Mãe)
+      state.records.forEach((rec) => {
+        const clean = String(rec.video || '').trim();
+        if (!clean || clean === 'Vídeo sem título') return;
+        const key = normalizeSearchText(clean);
+        if (!catalog.has(key)) {
+          catalog.set(key, {
+            title: clean,
+            count: 0,
+            lastUsedMs: rec._createdMs || 0,
+          });
+        }
+        const entry = catalog.get(key);
+        entry.title = clean;
+        entry.count += 1;
+        if ((rec._createdMs || 0) > entry.lastUsedMs) {
+          entry.lastUsedMs = rec._createdMs || 0;
+        }
+      });
+
+      // 2) Títulos sincronizados no catálogo oculto da nuvem (mesmo se o registro diário foi apagado)
+      state.cloudVideoTitles.forEach((cloudTitle) => {
+        const clean = String(cloudTitle || '').trim();
+        if (!clean) return;
+        const key = normalizeSearchText(clean);
+        if (!catalog.has(key)) {
+          catalog.set(key, {
+            title: clean,
+            count: 0,
+            lastUsedMs: 2000,
+          });
+        }
+      });
+
+      // 3) Títulos armazenados no histórico oculto local
+      loadHiddenVideoHistory(state.familyCode).forEach((savedTitle, idx) => {
+        const clean = String(savedTitle || '').trim();
+        if (!clean) return;
+        const key = normalizeSearchText(clean);
+        if (!catalog.has(key)) {
+          catalog.set(key, {
+            title: clean,
+            count: 0,
+            lastUsedMs: Math.max(0, 1000 - idx),
+          });
+        }
+      });
+
+      // 4) Os 8 desenhos rápidos pré-cadastrados
+      MOST_WATCHED_VIDEOS.forEach((preset) => {
+        const key = normalizeSearchText(preset);
+        if (!catalog.has(key)) {
+          catalog.set(key, {
+            title: preset,
+            count: 0,
+            lastUsedMs: 0,
+          });
+        }
+      });
+
+      return Array.from(catalog.values()).sort(
+        (a, b) => b.count - a.count || b.lastUsedMs - a.lastUsedMs || a.title.localeCompare(b.title, 'pt-BR')
+      );
+    }
+
+    function highlightMatchingSubstring(title, query) {
+      const normTitle = normalizeSearchText(title);
+      const normQuery = normalizeSearchText(query);
+      const idx = normTitle.indexOf(normQuery);
+      if (idx === -1 || normTitle.length !== title.length) {
+        return escapeHtml(title);
+      }
+      const before = escapeHtml(title.slice(0, idx));
+      const match = escapeHtml(title.slice(idx, idx + query.trim().length));
+      const after = escapeHtml(title.slice(idx + query.trim().length));
+      return `${before}<mark class="bg-[#fdf1ee] text-[#e86f51] font-extrabold rounded px-0.5">${match}</mark>${after}`;
+    }
+
+    function renderVideoAutocomplete(inputId, dropdownId) {
+      const input = document.getElementById(inputId);
+      const dropdown = document.getElementById(dropdownId);
+      if (!input || !dropdown) return;
+
+      const query = input.value.trim();
+      if (query.length < 3) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        return;
+      }
+
+      const normQuery = normalizeSearchText(query);
+      const matches = getAllKnownVideoTitles().filter((item) =>
+        normalizeSearchText(item.title).includes(normQuery)
+      );
+
+      if (matches.length === 0) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        return;
+      }
+
+      dropdown.innerHTML = matches
+        .slice(0, 10)
+        .map((item) => {
+          const safeTitleAttr = escapeHtml(item.title).replace(/'/g, "\\'");
+          const badge =
+            item.count > 0
+              ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">${item.count}x</span>`
+              : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1e3a5f]/10 text-[#1e3a5f] shrink-0">Salvo</span>`;
+
+          return `
+            <button
+              type="button"
+              role="option"
+              onclick="selectAutocompleteVideo('${safeTitleAttr}', '${inputId}', '${dropdownId}')"
+              class="w-full px-4 py-3 text-left hover:bg-[#fdf1ee] active:bg-[#fae2dc] transition-colors flex items-center justify-between gap-2.5"
+            >
+              <span class="flex items-center gap-2 min-w-0">
+                <span class="text-sm shrink-0">🎬</span>
+                <span class="text-sm font-bold text-slate-800 truncate">${highlightMatchingSubstring(item.title, query)}</span>
+              </span>
+              ${badge}
+            </button>
+          `;
+        })
+        .join('');
+
+      dropdown.classList.remove('hidden');
+    }
+
+    window.selectAutocompleteVideo = function (title, inputId, dropdownId) {
+      const input = document.getElementById(inputId);
+      const dropdown = document.getElementById(dropdownId);
+      if (input) {
+        input.value = title;
+      }
+      if (dropdown) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+      }
+      if (inputId === 'sw-video-input') {
+        persistTimerToStorage();
+      }
+      renderVideoSuggestionChips();
+    };
+
+    function hideAllVideoAutocompletes() {
+      ['reg-video-autocomplete', 'sw-video-autocomplete'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+    }
+
+    // =========================================================================
+    // 6. CACHE LOCAL E SINCRONIZAÇÃO EM TEMPO REAL (FIRESTORE + AUTH ANÔNIMA)
+    // =========================================================================
     function sortRecords(list) {
       return [...list].sort((a, b) => {
         if (b.data !== a.data) return b.data.localeCompare(a.data);
@@ -921,7 +1178,6 @@
       });
     }
 
-    // Normaliza documentos antigos ou novos para o esquema padrão
     function normalizeRecord(id, raw) {
       const createdMs =
         raw.criadoEm && typeof raw.criadoEm.toMillis === 'function'
@@ -940,9 +1196,6 @@
       };
     }
 
-    // =========================================================================
-    // 5. CACHE LOCAL E SINCRONIZAÇÃO EM TEMPO REAL (FIRESTORE + AUTH ANÔNIMA)
-    // =========================================================================
     function getCacheKey(code) {
       return `${STORAGE_KEYS.CACHE_PREFIX}${code}`;
     }
@@ -1007,13 +1260,17 @@
         state.unsubRecords();
         state.unsubRecords = null;
       }
+      if (state.unsubCatalog) {
+        state.unsubCatalog();
+        state.unsubCatalog = null;
+      }
 
       const code = state.familyCode;
       state.records = loadRecordsFromLocalCache(code);
       renderAll();
 
+      // Listener 1: Registros diários de TV
       const registrosCol = collection(db, 'tv_families', code, 'registros');
-
       state.unsubRecords = onSnapshot(
         registrosCol,
         (snapshot) => {
@@ -1029,6 +1286,7 @@
           const merged = sortRecords([...cloudItems, ...localPending]);
           state.records = merged;
           saveRecordsToLocalCache(code, merged);
+          syncAllRecordsToHiddenHistory(merged);
           setSyncStatus('cloud');
           renderAll();
         },
@@ -1038,11 +1296,32 @@
           renderAll();
         }
       );
+
+      // Listener 2: Catálogo oculto de títulos sincronizado entre Pai e Mãe
+      const catalogCol = collection(db, 'tv_families', code, 'catalogo_videos');
+      state.unsubCatalog = onSnapshot(
+        catalogCol,
+        (snapshot) => {
+          const titles = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data && data.titulo) {
+              titles.push(String(data.titulo).trim());
+            }
+          });
+          state.cloudVideoTitles = titles;
+          syncAllRecordsToHiddenHistory(state.records);
+        },
+        (err) => {
+          console.warn('Aviso listener catálogo:', err?.code || err);
+        }
+      );
     }
 
     async function persistNewRecord({ data, video, minutos, registradoPor }) {
       const code = state.familyCode;
       const clientCreatedMs = Date.now();
+      rememberVideoTitle(video);
       setSyncStatus('saving');
 
       try {
@@ -1103,7 +1382,7 @@
     }
 
     // =========================================================================
-    // 6. PERFIL DO CELULAR (PAI / MÃE), CÓDIGO DA FAMÍLIA E NAVEGAÇÃO
+    // 7. PERFIL DO CELULAR (PAI / MÃE), CÓDIGO DA FAMÍLIA E NAVEGAÇÃO
     // =========================================================================
     window.setProfile = function (role) {
       state.profile = role;
@@ -1204,7 +1483,7 @@
     };
 
     // =========================================================================
-    // 7. ABA 1: 📺 REGISTRAR (DATA, VÍDEO, DURAÇÃO E LISTA DO DIA)
+    // 8. ABA 1: 📺 REGISTRAR (DATA, VÍDEO, DURAÇÃO E LISTA DO DIA)
     // =========================================================================
     window.setQuickDate = function (offsetDays) {
       const d = new Date();
@@ -1243,11 +1522,13 @@
 
     window.handleRegVideoInput = function () {
       renderVideoSuggestionChips();
+      renderVideoAutocomplete('reg-video-input', 'reg-video-autocomplete');
     };
 
     window.handleSwVideoInput = function () {
       persistTimerToStorage();
       renderVideoSuggestionChips();
+      renderVideoAutocomplete('sw-video-input', 'sw-video-autocomplete');
     };
 
     window.applyVideoSuggestion = function (title, targetInputId) {
@@ -1257,12 +1538,14 @@
       if (targetInputId === 'sw-video-input') {
         persistTimerToStorage();
       }
+      hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
     };
 
     window.clearVideoInput = function () {
       const input = document.getElementById('reg-video-input');
       input.value = '';
+      hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
       input.focus();
     };
@@ -1271,6 +1554,7 @@
       const input = document.getElementById('sw-video-input');
       input.value = '';
       persistTimerToStorage();
+      hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
       input.focus();
     };
@@ -1389,6 +1673,7 @@
 
       videoInput.value = '';
       minutesInput.value = '';
+      hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
       updateMinutesCaption();
 
@@ -1497,7 +1782,7 @@
     }
 
     // =========================================================================
-    // 8. ABA 2: ⏱️ CRONÔMETRO PERSISTENTE VIA TIMESTAMP (Date.now())
+    // 9. ABA 2: ⏱️ CRONÔMETRO PERSISTENTE VIA TIMESTAMP (Date.now())
     // =========================================================================
     function restoreTimerFromStorage() {
       try {
@@ -1655,6 +1940,7 @@
       videoInput.value = '';
       state.timerVideoTitle = '';
       resetTimer();
+      hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
       state.regDate = todayYmd;
       syncDateUI();
@@ -1669,7 +1955,7 @@
     };
 
     // =========================================================================
-    // 9. ABA 3: 📊 RELATÓRIOS (DIÁRIO, SEMANAL, MENSAL + 2 GRÁFICOS CHART.JS)
+    // 10. ABA 3: 📊 RELATÓRIOS (DIÁRIO, SEMANAL, MENSAL + 2 GRÁFICOS CHART.JS)
     // =========================================================================
     window.setReportMode = function (mode) {
       state.reportMode = mode;
@@ -1928,11 +2214,6 @@
       });
     }
 
-    /**
-     * GRÁFICO 2 NOVO: TEMPO ASSISTIDO: PAI VS. MÃE
-     * Compara os minutos registrados por Pai (#1e3a5f) e Mãe (#e86f51)
-     * em Diário, Semanal (Seg a Dom) e Mensal (dias 1 a 30/31).
-     */
     function renderParentComparisonChart(periodRecords, weekMonday) {
       const badgePai = document.getElementById('badge-total-pai');
       const badgeMae = document.getElementById('badge-total-mae');
@@ -1963,7 +2244,6 @@
       const ctx = canvas.getContext('2d');
 
       if (state.reportMode === 'diario') {
-        // Plugin leve para exibir o rótulo "Xm Ys" diretamente acima das barras no modo Diário
         const dailyValueLabelsPlugin = {
           id: 'dailyValueLabelsPlugin',
           afterDatasetsDraw(chart) {
@@ -2038,7 +2318,6 @@
         return;
       }
 
-      // Modos Semanal (Seg a Dom) e Mensal (dias 1 a 30/31): barras agrupadas Pai vs. Mãe
       const labels = [];
       const paiSeries = [];
       const maeSeries = [];
@@ -2267,7 +2546,7 @@
     };
 
     // =========================================================================
-    // 10. TOAST, MODAL CUSTOMIZADO E RENDERIZAÇÃO GERAL
+    // 11. TOAST, MODAL CUSTOMIZADO E RENDERIZAÇÃO GERAL
     // =========================================================================
     let toastTimeout = null;
     function showToast(message, icon = '✅') {
@@ -2320,7 +2599,7 @@
     }
 
     // =========================================================================
-    // 11. INICIALIZAÇÃO DO APLICATIVO
+    // 12. INICIALIZAÇÃO DO APLICATIVO
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('header-family-code').textContent = state.familyCode;
@@ -2329,6 +2608,17 @@
       restoreTimerFromStorage();
       renderAll();
       initCloudSync();
+
+      // Fecha a lista de autocompletar ao tocar fora dos campos de vídeo
+      document.addEventListener('click', (event) => {
+        const regWrap = document.getElementById('reg-video-autocomplete-wrap');
+        const swWrap = document.getElementById('sw-video-autocomplete-wrap');
+        const insideReg = regWrap && regWrap.contains(event.target);
+        const insideSw = swWrap && swWrap.contains(event.target);
+        if (!insideReg && !insideSw) {
+          hideAllVideoAutocompletes();
+        }
+      });
     });
   </script>
 </body>
