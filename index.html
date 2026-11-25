@@ -736,7 +736,6 @@
       getFirestore,
       collection,
       doc,
-      addDoc,
       setDoc,
       deleteDoc,
       onSnapshot,
@@ -1154,7 +1153,7 @@
     }
 
     // =========================================================================
-    // 6. CACHE LOCAL E SINCRONIZAÇÃO EM TEMPO REAL (FIRESTORE + AUTH ANÔNIMA)
+    // 6. CACHE LOCAL E SINCRONIZAÇÃO EM TEMPO REAL (FIRESTORE + FILA OFFLINE)
     // =========================================================================
     function sortRecords(list) {
       return [...list].sort((a, b) => {
@@ -1177,6 +1176,7 @@
         video: raw.video || raw.videoTitle || 'Vídeo sem título',
         minutos: Number(raw.minutos ?? raw.minutes) || 0,
         registradoPor: raw.registradoPor || raw.recordedBy || 'Pai',
+        pending: Boolean(raw.pending),
         _createdMs: createdMs,
       };
     }
@@ -1193,7 +1193,6 @@
         if (!Array.isArray(parsed)) return [];
         return sortRecords(parsed.map((item) => normalizeRecord(item.id, item)));
       } catch (e) {
-        console.warn('Falha ao ler cache local:', e);
         return [];
       }
     }
@@ -1208,10 +1207,18 @@
 
     function setSyncStatus(mode) {
       const pill = document.getElementById('sync-status-pill');
+      if (!pill) return;
+      const pendingCount = state.records.filter((r) => r.pending).length;
+
       if (mode === 'cloud') {
         state.cloudConnected = true;
-        pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/30';
-        pill.textContent = '🟢 Sincronizado';
+        if (pendingCount > 0) {
+          pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/25 text-amber-100 border border-amber-300/40';
+          pill.textContent = `🟡 Enviando (${pendingCount})...`;
+        } else {
+          pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/30';
+          pill.textContent = '🟢 Sincronizado';
+        }
       } else if (mode === 'saving') {
         pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400/25 text-amber-100 border border-amber-300/40';
         pill.textContent = '🟡 Salvando...';
@@ -1222,26 +1229,78 @@
       } else {
         state.cloudConnected = false;
         pill.className = 'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white/15 text-slate-200 border border-white/20';
-        pill.textContent = '🟠 Local';
+        pill.textContent = pendingCount > 0 ? `🟠 Offline (${pendingCount} pendente)` : '🟠 Local';
+      }
+    }
+
+    let isFlushingQueue = false;
+
+    async function flushOfflineQueue() {
+      if (isFlushingQueue || !navigator.onLine) return;
+      const code = state.familyCode;
+      const cached = loadRecordsFromLocalCache(code);
+      const pendingItems = cached.filter((item) => item.pending);
+      if (pendingItems.length === 0) return;
+
+      isFlushingQueue = true;
+      setSyncStatus('saving');
+
+      let syncedCount = 0;
+      for (const item of pendingItems) {
+        try {
+          await setDoc(doc(db, 'tv_families', code, 'registros', item.id), {
+            data: item.data,
+            video: item.video,
+            minutos: item.minutos,
+            registradoPor: item.registradoPor,
+            clientCreatedMs: item._createdMs || Date.now(),
+            criadoEm: serverTimestamp(),
+          });
+          rememberVideoTitle(item.video);
+          syncedCount += 1;
+        } catch (err) {
+          console.warn('Ainda sem conexão para enviar registro pendente:', err?.code || err);
+          break;
+        }
+      }
+
+      isFlushingQueue = false;
+
+      if (syncedCount > 0) {
+        const syncedIds = new Set(pendingItems.slice(0, syncedCount).map((p) => p.id));
+        const latestCache = loadRecordsFromLocalCache(code).map((r) =>
+          syncedIds.has(r.id) ? { ...r, pending: false } : r
+        );
+        state.records = sortRecords(latestCache);
+        saveRecordsToLocalCache(code, state.records);
+        setSyncStatus('cloud');
+        renderAll();
+        showToast(
+          syncedCount === 1
+            ? '1 registro offline enviado para a nuvem!'
+            : `${syncedCount} registros offline enviados para a nuvem!`,
+          '☁️'
+        );
+      } else {
+        setSyncStatus('local');
       }
     }
 
     async function initCloudSync() {
       state.records = loadRecordsFromLocalCache(state.familyCode);
       renderAll();
-      setSyncStatus('connecting');
+      setSyncStatus(navigator.onLine ? 'connecting' : 'local');
 
-      // Inicia o listener imediatamente para não travar a interface caso a rede oscile
       connectFirestoreListener();
 
       try {
         await signInAnonymously(auth);
         connectFirestoreListener();
+        flushOfflineQueue();
       } catch (authErr) {
         console.warn('Aviso na autenticação anônima:', authErr?.code || authErr);
       }
 
-      // Garantia contra travamento visual no status "Conectando..."
       setTimeout(() => {
         const pill = document.getElementById('sync-status-pill');
         if (pill && pill.textContent.includes('Conectando')) {
@@ -1269,12 +1328,14 @@
         registrosCol,
         (snapshot) => {
           const cloudItems = [];
+          const cloudIds = new Set();
           snapshot.forEach((docSnap) => {
+            cloudIds.add(docSnap.id);
             cloudItems.push(normalizeRecord(docSnap.id, docSnap.data()));
           });
 
-          const localPending = loadRecordsFromLocalCache(code).filter((item) =>
-            String(item.id).startsWith('local_')
+          const localPending = loadRecordsFromLocalCache(code).filter(
+            (item) => (item.pending || String(item.id).startsWith('local_')) && !cloudIds.has(item.id)
           );
 
           const merged = sortRecords([...cloudItems, ...localPending]);
@@ -1283,6 +1344,10 @@
           syncAllRecordsToHiddenHistory(merged);
           setSyncStatus('cloud');
           renderAll();
+
+          if (localPending.length > 0) {
+            flushOfflineQueue();
+          }
         },
         (error) => {
           console.warn('Firestore operando em modo local:', error?.code || error);
@@ -1297,16 +1362,14 @@
         (snapshot) => {
           const titles = [];
           snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data && data.titulo) {
-              titles.push(String(data.titulo).trim());
-            }
+            const d = docSnap.data();
+            if (d && d.titulo) titles.push(String(d.titulo).trim());
           });
           state.cloudVideoTitles = titles;
           syncAllRecordsToHiddenHistory(state.records);
         },
         (err) => {
-          console.warn('Aviso listener catálogo:', err?.code || err);
+          console.warn('Aviso ao ler catálogo de vídeos na nuvem:', err?.code || err);
         }
       );
     }
@@ -1314,12 +1377,33 @@
     async function persistNewRecord({ data, video, minutos, registradoPor }) {
       const code = state.familyCode;
       const clientCreatedMs = Date.now();
+      const docId = `rec_${clientCreatedMs}_${Math.random().toString(36).slice(2, 7)}`;
       rememberVideoTitle(video);
+
+      // Salva imediatamente no aparelho com flag pending para garantir funcionamento offline
+      const localItem = {
+        id: docId,
+        data,
+        video,
+        minutos,
+        registradoPor,
+        pending: true,
+        _createdMs: clientCreatedMs,
+      };
+      const optimisticList = sortRecords([localItem, ...state.records.filter((r) => r.id !== docId)]);
+      state.records = optimisticList;
+      saveRecordsToLocalCache(code, optimisticList);
+      renderAll();
+
+      if (!navigator.onLine) {
+        setSyncStatus('local');
+        return { synced: false };
+      }
+
       setSyncStatus('saving');
 
       try {
-        const registrosCol = collection(db, 'tv_families', code, 'registros');
-        await addDoc(registrosCol, {
+        const writePromise = setDoc(doc(db, 'tv_families', code, 'registros', docId), {
           data,
           video,
           minutos,
@@ -1327,50 +1411,49 @@
           clientCreatedMs,
           criadoEm: serverTimestamp(),
         });
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('network_timeout')), 3500)
+        );
+
+        await Promise.race([writePromise, timeoutPromise]);
+
+        const confirmedList = loadRecordsFromLocalCache(code).map((r) =>
+          r.id === docId ? { ...r, pending: false } : r
+        );
+        state.records = sortRecords(confirmedList);
+        saveRecordsToLocalCache(code, state.records);
         setSyncStatus('cloud');
+        renderAll();
         return { synced: true };
       } catch (err) {
-        console.warn('Falha ao gravar na nuvem, salvando no cache local:', err);
-        const fallbackItem = {
-          id: `local_${clientCreatedMs}`,
-          data,
-          video,
-          minutos,
-          registradoPor,
-          _createdMs: clientCreatedMs,
-        };
-        const updated = sortRecords([fallbackItem, ...state.records]);
-        state.records = updated;
-        saveRecordsToLocalCache(code, updated);
+        console.warn('Sem resposta imediata da nuvem, mantido na fila offline:', err);
         setSyncStatus('local');
-        renderAll();
         return { synced: false };
       }
     }
 
     async function removeRecordById(recordId) {
       const code = state.familyCode;
-      setSyncStatus('saving');
+      const target = state.records.find((r) => r.id === recordId);
 
-      if (String(recordId).startsWith('local_')) {
-        const updated = state.records.filter((r) => r.id !== recordId);
-        state.records = updated;
-        saveRecordsToLocalCache(code, updated);
-        setSyncStatus('local');
-        renderAll();
+      const updated = state.records.filter((r) => r.id !== recordId);
+      state.records = updated;
+      saveRecordsToLocalCache(code, updated);
+      renderAll();
+
+      if (target?.pending || String(recordId).startsWith('local_') || !navigator.onLine) {
+        setSyncStatus(navigator.onLine ? 'cloud' : 'local');
         return;
       }
 
+      setSyncStatus('saving');
       try {
         await deleteDoc(doc(db, 'tv_families', code, 'registros', recordId));
         setSyncStatus('cloud');
       } catch (err) {
-        console.warn('Erro ao remover da nuvem, removendo localmente:', err);
-        const updated = state.records.filter((r) => r.id !== recordId);
-        state.records = updated;
-        saveRecordsToLocalCache(code, updated);
+        console.warn('Erro ao remover da nuvem:', err);
         setSyncStatus('local');
-        renderAll();
       }
     }
 
@@ -1381,7 +1464,6 @@
       state.profile = role;
       localStorage.setItem(STORAGE_KEYS.PROFILE, role);
       updateProfileUI(true);
-      updateTimerDisplay();
     };
 
     function updateProfileUI(showFeedback) {
@@ -1396,14 +1478,12 @@
         btnPai.className = 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 text-slate-300 hover:text-white';
       }
 
-      const roleBadge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
-      const saveBtnText = document.getElementById('btn-save-tv-text');
-      if (saveBtnText) {
-        saveBtnText.textContent = `Salvar Registro (como ${roleBadge})`;
-      }
+      const badge = state.profile === 'Pai' ? '👨 Pai' : '👩 Mãe';
+      document.getElementById('btn-save-tv-text').textContent = `Salvar Registro (como ${badge})`;
+      updateTimerDisplay();
 
       if (showFeedback) {
-        showToast(`Perfil ativo neste aparelho: ${roleBadge}`, state.profile === 'Pai' ? '👨' : '👩');
+        showToast(`Perfil ativo neste iPhone: ${badge}`, state.profile === 'Pai' ? '👨' : '👩');
       }
     }
 
@@ -1412,7 +1492,7 @@
         title: 'Código da Família Compartilhado',
         bodyHtml: `
           <p class="text-xs text-slate-500 leading-relaxed">
-            Use o <strong>mesmo código</strong> no iPhone do Pai e no iPhone da Mãe para que ambos visualizem e registrem o tempo de TV da Laís em tempo real.
+            Use o <strong>mesmo código</strong> no iPhone do Pai e no da Mãe para que ambos visualizem e registrem o tempo de TV da Laís em tempo real.
           </p>
           <div>
             <label for="input-family-code" class="block text-xs font-bold text-slate-700 mb-1">Código da Família</label>
@@ -1422,23 +1502,23 @@
               value="${escapeHtml(state.familyCode)}"
               maxlength="32"
               placeholder="LAIS-HOME"
-              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold uppercase text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold uppercase text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/40"
             />
           </div>
         `,
         actions: [
           {
             label: 'Cancelar',
-            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700',
+            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600',
           },
           {
             label: 'Conectar Código',
-            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-[#e86f51] text-white',
+            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-[#1e3a5f] text-white',
             onClick: () => {
               const raw = document.getElementById('input-family-code').value.trim().toUpperCase();
               const sanitized = raw.replace(/[^A-Z0-9-_]/g, '');
               if (!sanitized) {
-                showToast('Digite um código válido (ex.: LAIS-HOME).', '⚠️');
+                showToast('Informe um código válido (ex.: LAIS-HOME).', '⚠️');
                 return;
               }
               state.familyCode = sanitized;
@@ -1455,18 +1535,19 @@
 
     window.switchTab = function (tabName) {
       state.activeTab = tabName;
+      hideAllVideoAutocompletes();
       const tabs = ['registrar', 'cronometro', 'relatorios'];
       tabs.forEach((t) => {
         const view = document.getElementById(`view-${t}`);
-        const btn = document.getElementById(`nav-btn-${t}`);
+        const navBtn = document.getElementById(`nav-btn-${t}`);
         if (t === tabName) {
           view.classList.remove('hidden');
-          btn.classList.remove('text-slate-400');
-          btn.classList.add('text-[#e86f51]');
+          navBtn.classList.remove('text-slate-400');
+          navBtn.classList.add('text-[#e86f51]');
         } else {
           view.classList.add('hidden');
-          btn.classList.remove('text-[#e86f51]');
-          btn.classList.add('text-slate-400');
+          navBtn.classList.remove('text-[#e86f51]');
+          navBtn.classList.add('text-slate-400');
         }
       });
 
@@ -1476,21 +1557,21 @@
     };
 
     // =========================================================================
-    // 8. ABA 1: 📺 REGISTRAR (DATA, VÍDEO, DURAÇÃO E LISTA DO DIA)
+    // 8. ABA 1: 📺 REGISTRAR (8 DESENHOS, 10 DURAÇÕES RÁPIDAS E AUTOCOMPLETAR)
     // =========================================================================
     window.setQuickDate = function (offsetDays) {
       const d = new Date();
       d.setDate(d.getDate() + offsetDays);
       state.regDate = getLocalYMD(d);
       syncDateUI();
-      renderDailySummaryAndList();
+      renderDailyRecords();
     };
 
     window.handleDateInputChange = function (val) {
       if (!val) return;
       state.regDate = val;
       syncDateUI();
-      renderDailySummaryAndList();
+      renderDailyRecords();
     };
 
     function syncDateUI() {
@@ -1514,24 +1595,18 @@
     }
 
     window.handleRegVideoInput = function () {
-      renderVideoSuggestionChips();
       renderVideoAutocomplete('reg-video-input', 'reg-video-autocomplete');
+      renderVideoSuggestionChips();
     };
 
     window.handleSwVideoInput = function () {
       persistTimerToStorage();
-      renderVideoSuggestionChips();
       renderVideoAutocomplete('sw-video-input', 'sw-video-autocomplete');
+      renderVideoSuggestionChips();
     };
 
-    window.applyVideoSuggestionFromEl = function (btnEl, targetInputId) {
-      const title = btnEl.getAttribute('data-video-title') || '';
-      const input = document.getElementById(targetInputId);
-      if (!input) return;
-      input.value = title;
-      if (targetInputId === 'sw-video-input') {
-        persistTimerToStorage();
-      }
+    window.selectVideoTitle = function (title) {
+      document.getElementById('reg-video-input').value = title;
       hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
     };
@@ -1544,6 +1619,13 @@
       input.focus();
     };
 
+    window.selectSwVideoTitle = function (title) {
+      document.getElementById('sw-video-input').value = title;
+      persistTimerToStorage();
+      hideAllVideoAutocompletes();
+      renderVideoSuggestionChips();
+    };
+
     window.clearSwVideoInput = function () {
       const input = document.getElementById('sw-video-input');
       input.value = '';
@@ -1554,48 +1636,79 @@
     };
 
     function renderVideoSuggestionChips() {
-      const regContainer = document.getElementById('reg-video-suggestions');
-      const swContainer = document.getElementById('sw-video-suggestions');
-      const regCurrent = (document.getElementById('reg-video-input')?.value || '').trim().toLowerCase();
-      const swCurrent = (document.getElementById('sw-video-input')?.value || '').trim().toLowerCase();
+      const regWrap = document.getElementById('reg-video-suggestions');
+      const swWrap = document.getElementById('sw-video-suggestions');
+      const currentRegVal = (document.getElementById('reg-video-input')?.value || '').trim().toLowerCase();
+      const currentSwVal = (document.getElementById('sw-video-input')?.value || '').trim().toLowerCase();
 
-      const buildHtml = (targetId, currentVal) =>
-        MOST_WATCHED_VIDEOS.map((title) => {
-          const isSelected = currentVal === title.toLowerCase();
+      if (regWrap) {
+        regWrap.innerHTML = MOST_WATCHED_VIDEOS.map((title) => {
+          const isSelected = currentRegVal === title.toLowerCase();
           return `
             <button
               type="button"
-              data-video-title="${escapeHtml(title)}"
-              onclick="applyVideoSuggestionFromEl(this, '${targetId}')"
-              class="px-3 py-2 rounded-xl border text-xs font-extrabold transition-all active:scale-95 ${
+              onclick="selectVideoTitle('${escapeHtml(title)}')"
+              class="px-3 py-2 rounded-xl border text-xs font-extrabold active:scale-95 transition-all ${
                 isSelected
-                  ? 'bg-[#1e3a5f] border-[#1e3a5f] text-white shadow-xs'
-                  : 'bg-[#fdf1ee] hover:bg-[#fae2dc] border-[#e86f51]/30 text-[#1e3a5f]'
+                  ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-xs'
+                  : 'bg-[#fdf1ee] hover:bg-[#fae2dc] text-[#1e3a5f] border-[#e86f51]/25'
               }"
             >
-              ${isSelected ? '✓ ' : ''}${escapeHtml(title)}
+              🎬 ${escapeHtml(title)}
             </button>
           `;
         }).join('');
+      }
 
-      if (regContainer) regContainer.innerHTML = buildHtml('reg-video-input', regCurrent);
-      if (swContainer) swContainer.innerHTML = buildHtml('sw-video-input', swCurrent);
+      if (swWrap) {
+        swWrap.innerHTML = MOST_WATCHED_VIDEOS.map((title) => {
+          const isSelected = currentSwVal === title.toLowerCase();
+          return `
+            <button
+              type="button"
+              onclick="selectSwVideoTitle('${escapeHtml(title)}')"
+              class="px-2.5 py-1.5 rounded-xl border text-xs font-bold active:scale-95 transition-all ${
+                isSelected
+                  ? 'bg-[#1e3a5f] text-white border-[#1e3a5f] shadow-xs'
+                  : 'bg-slate-100 hover:bg-[#fdf1ee] text-[#1e3a5f] border-slate-200'
+              }"
+            >
+              🎬 ${escapeHtml(title)}
+            </button>
+          `;
+        }).join('');
+      }
     }
 
-    function renderQuickMinutesButtons(selectedVal) {
+    function updateMinutesCaption(parsedMins) {
+      const caption = document.getElementById('reg-minutes-caption');
+      if (!caption) return;
+      if (Number.isFinite(parsedMins) && parsedMins > 0) {
+        const ptDecimal = String(parsedMins).replace('.', ',');
+        caption.textContent = `⏱️ ${formatarMinutos(parsedMins)} (${ptDecimal} min)`;
+        caption.className = 'text-xs font-extrabold text-[#1e3a5f] text-center mt-1.5';
+      } else {
+        caption.textContent = '⏱️ 0m';
+        caption.className = 'text-xs font-medium text-slate-400 text-center mt-1.5';
+      }
+    }
+
+    function renderQuickMinutesButtons() {
       const grid = document.getElementById('reg-quick-minutes-grid');
       if (!grid) return;
 
+      const currentVal = parseMinutesInput(document.getElementById('reg-minutes-input')?.value);
+
       grid.innerHTML = QUICK_DURATIONS.map((item) => {
-        const isSelected = Number.isFinite(selectedVal) && Math.abs(selectedVal - item.value) < 0.001;
+        const isSelected = Number.isFinite(currentVal) && Math.abs(currentVal - item.value) < 0.001;
         return `
           <button
             type="button"
-            onclick="selectQuickMinutes('${item.label}', ${item.value})"
-            class="py-2.5 px-1 rounded-xl border font-extrabold text-xs sm:text-sm transition-all active:scale-95 ${
+            onclick="selectQuickDuration(${item.value})"
+            class="py-2.5 px-1 rounded-xl border text-xs font-extrabold active:scale-95 transition-all ${
               isSelected
-                ? 'bg-[#e86f51] border-[#e86f51] text-white shadow-xs'
-                : 'bg-slate-50 hover:bg-[#fdf1ee] border-slate-200 text-slate-800'
+                ? 'bg-[#e86f51] text-white border-[#e86f51] shadow-xs'
+                : 'bg-[#1e3a5f]/8 hover:bg-[#1e3a5f]/15 text-[#1e3a5f] border-[#1e3a5f]/15'
             }"
           >
             ${escapeHtml(item.label)}
@@ -1604,99 +1717,82 @@
       }).join('');
     }
 
-    function updateMinutesCaption() {
-      const captionEl = document.getElementById('reg-minutes-caption');
-      const inputEl = document.getElementById('reg-minutes-input');
-      const val = parseMinutesInput(inputEl?.value);
-
-      if (captionEl) {
-        if (!Number.isFinite(val) || val <= 0) {
-          captionEl.textContent = '⏱️ 0m';
-          captionEl.className = 'text-xs font-medium text-slate-400 text-center mt-1.5';
-        } else {
-          captionEl.textContent = `⏱️ ${formatarMinutos(val)}`;
-          captionEl.className = 'text-xs font-extrabold text-[#1e3a5f] text-center mt-1.5';
-        }
-      }
-      renderQuickMinutesButtons(val);
-    }
-
-    window.selectQuickMinutes = function (label, val) {
+    window.selectQuickDuration = function (mins) {
       const input = document.getElementById('reg-minutes-input');
-      if (!input) return;
-      input.value = label.replace(/m$/, '');
-      updateMinutesCaption();
+      input.value = String(mins).replace('.', ',');
+      updateMinutesCaption(mins);
+      renderQuickMinutesButtons();
     };
 
     window.handleMinutesManualInput = function () {
-      updateMinutesCaption();
+      const parsed = parseMinutesInput(document.getElementById('reg-minutes-input').value);
+      updateMinutesCaption(parsed);
+      renderQuickMinutesButtons();
     };
 
     window.clearMinutesInput = function () {
-      const input = document.getElementById('reg-minutes-input');
-      if (input) input.value = '';
-      updateMinutesCaption();
+      document.getElementById('reg-minutes-input').value = '';
+      updateMinutesCaption(NaN);
+      renderQuickMinutesButtons();
     };
 
     window.saveTvRecord = async function () {
       const videoInput = document.getElementById('reg-video-input');
       const minutesInput = document.getElementById('reg-minutes-input');
-      const saveBtn = document.getElementById('btn-save-tv');
 
       const video = videoInput.value.trim();
+      const minutos = parseMinutesInput(minutesInput.value);
+
       if (!video) {
-        showToast('Digite ou selecione qual vídeo a Laís assistiu.', '📺');
+        showToast('Digite ou toque em um desenho assistido.', '📺');
         videoInput.focus();
         return;
       }
 
-      const minutos = parseMinutesInput(minutesInput.value);
-      if (!Number.isFinite(minutos) || minutos <= 0 || minutos > 720) {
-        showToast('Informe uma duração válida em minutos (ex.: 1,30 ou 4).', '⏱️');
+      if (!Number.isFinite(minutos) || minutos <= 0) {
+        showToast('Informe a quantidade de minutos assistidos.', '⏱️');
         minutesInput.focus();
         return;
       }
 
+      const saveBtn = document.getElementById('btn-save-tv');
       saveBtn.disabled = true;
+
       const result = await persistNewRecord({
         data: state.regDate,
         video,
         minutos,
         registradoPor: state.profile,
       });
-      saveBtn.disabled = false;
 
       videoInput.value = '';
       minutesInput.value = '';
+      updateMinutesCaption(NaN);
       hideAllVideoAutocompletes();
       renderVideoSuggestionChips();
-      updateMinutesCaption();
+      renderQuickMinutesButtons();
+      saveBtn.disabled = false;
 
       const formatted = formatarMinutos(minutos);
       showToast(
         result.synced
           ? `📺 "${video}" (${formatted}) salvo!`
-          : `📺 "${video}" (${formatted}) salvo localmente!`,
-        '🎉'
+          : `📺 "${video}" (${formatted}) salvo offline! Sincronizará ao conectar.`,
+        result.synced ? '🎉' : '📴'
       );
     };
 
     window.confirmDeleteRecord = function (recordId) {
-      const rec = state.records.find((r) => r.id === recordId);
-      if (!rec) return;
+      const target = state.records.find((r) => r.id === recordId);
+      if (!target) return;
 
       openModal({
         title: 'Excluir registro de TV?',
-        bodyHtml: `
-          <p>
-            Deseja remover <strong>"${escapeHtml(rec.video)}" (${formatarMinutos(rec.minutos)})</strong>
-            registrado por <strong>${escapeHtml(rec.registradoPor)}</strong>?
-          </p>
-        `,
+        bodyHtml: `<p>Deseja remover <strong>"${escapeHtml(target.video)}" (${formatarMinutos(target.minutos)})</strong> registrado por <strong>${escapeHtml(target.registradoPor)}</strong>?</p>`,
         actions: [
           {
             label: 'Cancelar',
-            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700',
+            className: 'px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600',
           },
           {
             label: 'Excluir',
@@ -1710,49 +1806,53 @@
       });
     };
 
-    function renderDailySummaryAndList() {
+    function renderDailyRecords() {
+      const listEl = document.getElementById('daily-records-list');
       const labelEl = document.getElementById('day-summary-label');
       const totalEl = document.getElementById('day-summary-total');
       const countBadge = document.getElementById('day-summary-count-badge');
-      const listEl = document.getElementById('daily-records-list');
 
-      const dayRecords = state.records.filter((r) => r.data === state.regDate);
-      const totalMins = roundMins(dayRecords.reduce((sum, r) => sum + (Number(r.minutos) || 0), 0));
-      const count = dayRecords.length;
+      const dayItems = state.records.filter((r) => r.data === state.regDate);
+      const totalMinutes = roundMins(dayItems.reduce((sum, r) => sum + (Number(r.minutos) || 0), 0));
 
-      labelEl.textContent = `Total no dia (${formatHumanDate(state.regDate)})`;
-      totalEl.textContent = formatarMinutos(totalMins);
-      countBadge.textContent = count === 1 ? '1 vídeo' : `${count} vídeos`;
+      labelEl.textContent = `Total de ${formatHumanDate(state.regDate)}`;
+      totalEl.textContent = formatarMinutos(totalMinutes);
+      countBadge.textContent = dayItems.length === 1 ? '1 vídeo' : `${dayItems.length} vídeos`;
 
-      if (count === 0) {
+      if (dayItems.length === 0) {
         listEl.innerHTML = `
-          <div class="bg-white/80 border border-dashed border-slate-300 rounded-3xl p-6 text-center">
-            <p class="text-xs font-semibold text-slate-500">Nenhum vídeo registrado nesta data.</p>
+          <div class="bg-white/80 border border-dashed border-slate-200 rounded-3xl p-6 text-center">
+            <p class="text-xs font-semibold text-slate-400">Nenhum tempo de TV registrado nesta data.</p>
           </div>
         `;
         return;
       }
 
-      listEl.innerHTML = dayRecords
+      listEl.innerHTML = dayItems
         .map((rec) => {
           const isMae = rec.registradoPor === 'Mãe';
 
           return `
             <div class="bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="w-10 h-10 rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f] flex items-center justify-center text-lg shrink-0">
+              <div class="flex items-start gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-2xl bg-[#1e3a5f]/10 text-[#1e3a5f] flex items-center justify-center text-lg shrink-0">
                   📺
-                </span>
+                </div>
                 <div class="min-w-0">
                   <p class="text-sm font-extrabold text-slate-900 break-words leading-snug">
                     ${escapeHtml(rec.video)}
                   </p>
-                  <div class="mt-1">
+                  <div class="mt-1 flex items-center gap-1.5 flex-wrap">
                     <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       isMae ? 'bg-[#fdf1ee] text-[#e86f51]' : 'bg-[#1e3a5f]/10 text-[#1e3a5f]'
                     }">
                       ${isMae ? '👩 Mãe' : '👨 Pai'}
                     </span>
+                    ${
+                      rec.pending
+                        ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">⏳ Aguardando internet</span>`
+                        : ''
+                    }
                   </div>
                 </div>
               </div>
@@ -1944,8 +2044,8 @@
       showToast(
         result.synced
           ? `📺 "${video}" (${formatted}) salvo!`
-          : `📺 "${video}" (${formatted}) salvo localmente!`,
-        '🎉'
+          : `📺 "${video}" (${formatted}) salvo offline! Sincronizará ao conectar.`,
+        result.synced ? '🎉' : '📴'
       );
     };
 
@@ -1983,14 +2083,14 @@
       renderReports();
     };
 
-    function getFilteredReportPeriod() {
+    function getFilteredPeriodData() {
       const anchor = state.reportAnchorDate;
       const now = new Date();
       let periodRecords = [];
       let periodLabel = '';
       let isCurrentPeriod = false;
       let daysInPeriod = 1;
-      let weekMonday = null;
+      const monday = getWeekMonday(anchor);
 
       if (state.reportMode === 'diario') {
         const ymd = getLocalYMD(anchor);
@@ -2001,16 +2101,13 @@
         periodRecords = state.records.filter((r) => r.data === ymd);
         daysInPeriod = 1;
       } else if (state.reportMode === 'semanal') {
-        weekMonday = getWeekMonday(anchor);
-        const weekSunday = new Date(weekMonday);
-        weekSunday.setDate(weekMonday.getDate() + 6);
-
-        const monStr = getLocalYMD(weekMonday);
-        const sunStr = getLocalYMD(weekSunday);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        const monStr = getLocalYMD(monday);
+        const sunStr = getLocalYMD(sunday);
         isCurrentPeriod = monStr === getLocalYMD(getWeekMonday(now));
-
-        const a = weekMonday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        const b = weekSunday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+        const a = monday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        const b = sunday.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
         periodLabel = `${a} – ${b}`;
         periodRecords = state.records.filter((r) => r.data >= monStr && r.data <= sunStr);
         daysInPeriod = 7;
@@ -2025,14 +2122,14 @@
         daysInPeriod = new Date(year, month + 1, 0).getDate();
       }
 
-      return { periodRecords, periodLabel, isCurrentPeriod, daysInPeriod, weekMonday };
+      return { periodRecords, periodLabel, isCurrentPeriod, daysInPeriod, monday };
     }
 
     function renderReports() {
-      const { periodRecords, periodLabel, isCurrentPeriod, daysInPeriod, weekMonday } = getFilteredReportPeriod();
+      const { periodRecords, periodLabel, isCurrentPeriod, daysInPeriod, monday } = getFilteredPeriodData();
 
       document.getElementById('rep-period-title').textContent = periodLabel;
-      document.getElementById('print-period-subtitle').textContent = `Período (${state.reportMode}): ${periodLabel}`;
+      document.getElementById('print-period-subtitle').textContent = `Período (${state.reportMode.toUpperCase()}): ${periodLabel}`;
       document.getElementById('print-generated-date').textContent = `Emitido em ${new Date().toLocaleDateString('pt-BR')}`;
       document.getElementById('print-family-label').textContent = `Família: ${state.familyCode}`;
 
@@ -2040,53 +2137,56 @@
       if (isCurrentPeriod) jumpBtn.classList.add('hidden');
       else jumpBtn.classList.remove('hidden');
 
-      const totalMins = roundMins(periodRecords.reduce((sum, r) => sum + (Number(r.minutos) || 0), 0));
-      const avgDailyMins = roundMins(totalMins / daysInPeriod);
-
-      const videoRankingMap = new Map();
+      // Agrupamento por desenho/vídeo
+      const videoMap = new Map();
       periodRecords.forEach((rec) => {
-        const cleanTitle = (rec.video || 'Vídeo sem título').trim();
-        const key = cleanTitle.toLowerCase();
-        if (!videoRankingMap.has(key)) {
-          videoRankingMap.set(key, {
-            title: cleanTitle,
-            minutes: 0,
-            count: 0,
+        const key = rec.video.trim().toLowerCase();
+        if (!videoMap.has(key)) {
+          videoMap.set(key, {
+            title: rec.video.trim(),
+            minutos: 0,
+            sessoes: 0,
           });
         }
-        const entry = videoRankingMap.get(key);
-        entry.title = cleanTitle;
-        entry.minutes = roundMins(entry.minutes + (Number(rec.minutos) || 0));
-        entry.count += 1;
+        const entry = videoMap.get(key);
+        entry.minutos = roundMins(entry.minutos + (Number(rec.minutos) || 0));
+        entry.sessoes += 1;
       });
 
-      const videoRanking = Array.from(videoRankingMap.values()).sort(
-        (a, b) => b.minutes - a.minutes || b.count - a.count
-      );
+      const videoRanking = Array.from(videoMap.values()).sort((a, b) => b.minutos - a.minutos);
+      const totalMins = roundMins(periodRecords.reduce((sum, r) => sum + (Number(r.minutos) || 0), 0));
+      const avgDailyMins = roundMins(totalMins / daysInPeriod);
       const topVideo = videoRanking[0] || null;
 
+      // Atualiza os 3 KPIs
       document.getElementById('kpi-total-primary').textContent = formatarMinutos(totalMins);
       document.getElementById('kpi-total-secondary').textContent = formatHoursSummary(totalMins);
-
       document.getElementById('kpi-avg-primary').textContent = formatarMinutos(avgDailyMins);
       document.getElementById('kpi-avg-secondary').textContent =
         state.reportMode === 'diario' ? 'no dia' : `média / ${daysInPeriod}d`;
 
       if (topVideo) {
         document.getElementById('kpi-top-video').textContent = topVideo.title;
-        document.getElementById('kpi-top-video-mins').textContent = `${formatarMinutos(topVideo.minutes)} (${topVideo.count}x)`;
+        document.getElementById('kpi-top-video-mins').textContent = formatarMinutos(topVideo.minutos);
       } else {
         document.getElementById('kpi-top-video').textContent = '—';
         document.getElementById('kpi-top-video-mins').textContent = '0m';
       }
 
-      renderChartJsBar(periodRecords, weekMonday, videoRanking);
-      renderParentComparisonChart(periodRecords, weekMonday);
+      // Gráfico 1: Tempo Assistido por Dia
+      renderBarChart(periodRecords, monday, videoRanking);
+
+      // Gráfico 2: Tempo Assistido: Pai vs. Mãe
+      renderParentComparisonChart(periodRecords, monday);
+
+      // Ranking dos Desenhos
       renderVideosRanking(videoRanking, totalMins);
+
+      // Histórico Detalhado
       renderDetailedHistory(periodRecords);
     }
 
-    function renderChartJsBar(periodRecords, weekMonday, videoRanking) {
+    function renderBarChart(periodRecords, weekMonday, videoRanking) {
       const titleEl = document.getElementById('rep-bar-chart-title');
       const peakEl = document.getElementById('rep-bar-chart-peak');
       const canvas = document.getElementById('tv-bar-chart');
@@ -2094,20 +2194,20 @@
 
       let labels = [];
       let values = [];
-      const barColor = '#e86f51';
+      let barColors = '#e86f51';
 
       if (state.reportMode === 'diario') {
         titleEl.textContent = 'TEMPO ASSISTIDO POR VÍDEO (DIA)';
         if (videoRanking.length === 0) {
           labels = ['Sem registros'];
           values = [0];
+          barColors = ['#E2E8F0'];
         } else {
-          labels = videoRanking.map((v) =>
-            v.title.length > 14 ? v.title.slice(0, 13) + '…' : v.title
-          );
-          values = videoRanking.map((v) => v.minutes);
+          labels = videoRanking.map((v) => (v.title.length > 15 ? v.title.slice(0, 14) + '…' : v.title));
+          values = videoRanking.map((v) => v.minutos);
+          barColors = videoRanking.map((_, i) => (i % 2 === 0 ? '#e86f51' : '#1e3a5f'));
         }
-      } else if (state.reportMode === 'semanal' && weekMonday) {
+      } else if (state.reportMode === 'semanal') {
         titleEl.textContent = 'TEMPO ASSISTIDO POR DIA (SEG A DOM)';
         const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         for (let i = 0; i < 7; i++) {
@@ -2122,6 +2222,7 @@
           labels.push(`${dayNames[i]} ${d.getDate()}`);
           values.push(mins);
         }
+        barColors = '#e86f51';
       } else {
         titleEl.textContent = 'TEMPO ASSISTIDO POR DIA DO MÊS';
         const year = state.reportAnchorDate.getFullYear();
@@ -2137,10 +2238,11 @@
           labels.push(String(day));
           values.push(mins);
         }
+        barColors = '#e86f51';
       }
 
-      const peakMins = Math.max(...values, 0);
-      peakEl.textContent = `Pico: ${formatarMinutos(peakMins)}`;
+      const peak = Math.max(...values, 0);
+      peakEl.textContent = `Pico: ${formatarMinutos(peak)}`;
 
       if (state.barChartInstance) {
         state.barChartInstance.destroy();
@@ -2156,9 +2258,9 @@
           labels,
           datasets: [
             {
-              label: 'Tempo assistido',
+              label: 'Tempo',
               data: values,
-              backgroundColor: barColor,
+              backgroundColor: barColors,
               borderRadius: 6,
               maxBarThickness: 32,
             },
@@ -2191,7 +2293,7 @@
               border: { display: false },
               grid: { color: '#F1F5F9' },
               ticks: {
-                color: '#94A3B8',
+                color: '#64748B',
                 font: { family: 'Inter', size: 10, weight: '600' },
               },
             },
@@ -2206,19 +2308,19 @@
       const canvas = document.getElementById('tv-parent-chart');
       if (!canvas) return;
 
-      const totalPaiMins = roundMins(
+      const totalPai = roundMins(
         periodRecords
           .filter((r) => r.registradoPor !== 'Mãe')
           .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
       );
-      const totalMaeMins = roundMins(
+      const totalMae = roundMins(
         periodRecords
           .filter((r) => r.registradoPor === 'Mãe')
           .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
       );
 
-      if (badgePai) badgePai.textContent = `👨 Pai: ${formatarMinutos(totalPaiMins)}`;
-      if (badgeMae) badgeMae.textContent = `👩 Mãe: ${formatarMinutos(totalMaeMins)}`;
+      if (badgePai) badgePai.textContent = `👨 Pai: ${formatarMinutos(totalPai)}`;
+      if (badgeMae) badgeMae.textContent = `👩 Mãe: ${formatarMinutos(totalMae)}`;
 
       if (state.parentChartInstance) {
         state.parentChartInstance.destroy();
@@ -2227,181 +2329,137 @@
 
       if (typeof Chart === 'undefined') return;
 
-      const ctx = canvas.getContext('2d');
+      let labels = [];
+      let datasets = [];
 
       if (state.reportMode === 'diario') {
-        const dailyValueLabelsPlugin = {
-          id: 'dailyValueLabelsPlugin',
-          afterDatasetsDraw(chart) {
-            const { ctx: c } = chart;
-            c.save();
-            c.font = '800 11px Inter, sans-serif';
-            c.textAlign = 'center';
-            c.textBaseline = 'bottom';
-
-            const meta = chart.getDatasetMeta(0);
-            meta.data.forEach((bar, index) => {
-              const rawVal = chart.data.datasets[0].data[index] || 0;
-              c.fillStyle = index === 0 ? '#1e3a5f' : '#e86f51';
-              c.fillText(formatarMinutos(rawVal), bar.x, bar.y - 5);
-            });
-            c.restore();
+        labels = ['👨 Pai', '👩 Mãe'];
+        datasets = [
+          {
+            label: 'Tempo no dia',
+            data: [totalPai, totalMae],
+            backgroundColor: ['#1e3a5f', '#e86f51'],
+            borderRadius: 8,
+            maxBarThickness: 54,
           },
-        };
-
-        const maxVal = Math.max(totalPaiMins, totalMaeMins, 1);
-
-        state.parentChartInstance = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['👨 Pai', '👩 Mãe'],
-            datasets: [
-              {
-                label: 'Tempo assistido',
-                data: [totalPaiMins, totalMaeMins],
-                backgroundColor: ['#1e3a5f', '#e86f51'],
-                borderRadius: 10,
-                maxBarThickness: 56,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: {
-              padding: { top: 20 },
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: (context) => ` ${context.label}: ${formatarMinutos(context.parsed.y)}`,
-                },
-              },
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: {
-                  color: '#1e3a5f',
-                  font: { family: 'Inter', size: 12, weight: '800' },
-                },
-              },
-              y: {
-                beginAtZero: true,
-                suggestedMax: maxVal * 1.18,
-                border: { display: false },
-                grid: { color: '#F1F5F9' },
-                ticks: {
-                  color: '#94A3B8',
-                  font: { family: 'Inter', size: 10, weight: '600' },
-                },
-              },
-            },
-          },
-          plugins: [dailyValueLabelsPlugin],
-        });
-        return;
-      }
-
-      const labels = [];
-      const paiSeries = [];
-      const maeSeries = [];
-
-      if (state.reportMode === 'semanal' && weekMonday) {
+        ];
+      } else if (state.reportMode === 'semanal') {
         const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+        const paiValues = [];
+        const maeValues = [];
+
         for (let i = 0; i < 7; i++) {
           const d = new Date(weekMonday);
           d.setDate(weekMonday.getDate() + i);
           const ymd = getLocalYMD(d);
-          const dayRecs = periodRecords.filter((r) => r.data === ymd);
-
-          const pMins = roundMins(
-            dayRecs
-              .filter((r) => r.registradoPor !== 'Mãe')
-              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
-          );
-          const mMins = roundMins(
-            dayRecs
-              .filter((r) => r.registradoPor === 'Mãe')
-              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
-          );
-
           labels.push(`${dayNames[i]} ${d.getDate()}`);
-          paiSeries.push(pMins);
-          maeSeries.push(mMins);
+
+          const dayRecs = periodRecords.filter((r) => r.data === ymd);
+          paiValues.push(
+            roundMins(
+              dayRecs
+                .filter((r) => r.registradoPor !== 'Mãe')
+                .reduce((s, r) => s + (Number(r.minutos) || 0), 0)
+            )
+          );
+          maeValues.push(
+            roundMins(
+              dayRecs
+                .filter((r) => r.registradoPor === 'Mãe')
+                .reduce((s, r) => s + (Number(r.minutos) || 0), 0)
+            )
+          );
         }
+
+        datasets = [
+          {
+            label: '👨 Pai',
+            data: paiValues,
+            backgroundColor: '#1e3a5f',
+            borderRadius: 5,
+            maxBarThickness: 18,
+          },
+          {
+            label: '👩 Mãe',
+            data: maeValues,
+            backgroundColor: '#e86f51',
+            borderRadius: 5,
+            maxBarThickness: 18,
+          },
+        ];
       } else {
         const year = state.reportAnchorDate.getFullYear();
         const month = state.reportAnchorDate.getMonth();
         const daysCount = new Date(year, month + 1, 0).getDate();
+        const paiValues = [];
+        const maeValues = [];
+
         for (let day = 1; day <= daysCount; day++) {
           const ymd = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const dayRecs = periodRecords.filter((r) => r.data === ymd);
-
-          const pMins = roundMins(
-            dayRecs
-              .filter((r) => r.registradoPor !== 'Mãe')
-              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
-          );
-          const mMins = roundMins(
-            dayRecs
-              .filter((r) => r.registradoPor === 'Mãe')
-              .reduce((sum, r) => sum + (Number(r.minutos) || 0), 0)
-          );
-
           labels.push(String(day));
-          paiSeries.push(pMins);
-          maeSeries.push(mMins);
+
+          const dayRecs = periodRecords.filter((r) => r.data === ymd);
+          paiValues.push(
+            roundMins(
+              dayRecs
+                .filter((r) => r.registradoPor !== 'Mãe')
+                .reduce((s, r) => s + (Number(r.minutos) || 0), 0)
+            )
+          );
+          maeValues.push(
+            roundMins(
+              dayRecs
+                .filter((r) => r.registradoPor === 'Mãe')
+                .reduce((s, r) => s + (Number(r.minutos) || 0), 0)
+            )
+          );
         }
+
+        datasets = [
+          {
+            label: '👨 Pai',
+            data: paiValues,
+            backgroundColor: '#1e3a5f',
+            borderRadius: 4,
+            maxBarThickness: 12,
+          },
+          {
+            label: '👩 Mãe',
+            data: maeValues,
+            backgroundColor: '#e86f51',
+            borderRadius: 4,
+            maxBarThickness: 12,
+          },
+        ];
       }
 
+      const ctx = canvas.getContext('2d');
       state.parentChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
-          datasets: [
-            {
-              label: '👨 Pai',
-              data: paiSeries,
-              backgroundColor: '#1e3a5f',
-              borderRadius: 4,
-              maxBarThickness: 18,
-            },
-            {
-              label: '👩 Mãe',
-              data: maeSeries,
-              backgroundColor: '#e86f51',
-              borderRadius: 4,
-              maxBarThickness: 18,
-            },
-          ],
+          datasets,
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false,
-          },
           plugins: {
             legend: {
-              display: true,
+              display: state.reportMode !== 'diario',
               position: 'top',
-              align: 'end',
               labels: {
+                color: '#334155',
                 usePointStyle: true,
                 pointStyle: 'circle',
-                boxWidth: 8,
-                boxHeight: 8,
-                padding: 12,
-                color: '#334155',
                 font: { family: 'Inter', size: 11, weight: '700' },
               },
             },
             tooltip: {
               callbacks: {
-                label: (context) => ` ${context.dataset.label}: ${formatarMinutos(context.parsed.y)}`,
+                label: (context) => {
+                  const prefix = state.reportMode === 'diario' ? '' : `${context.dataset.label}: `;
+                  return ` ${prefix}${formatarMinutos(context.parsed.y)}`;
+                },
               },
             },
           },
@@ -2421,7 +2479,7 @@
               border: { display: false },
               grid: { color: '#F1F5F9' },
               ticks: {
-                color: '#94A3B8',
+                color: '#64748B',
                 font: { family: 'Inter', size: 10, weight: '600' },
               },
             },
@@ -2431,36 +2489,36 @@
     }
 
     function renderVideosRanking(videoRanking, totalMins) {
-      const container = document.getElementById('rep-videos-ranking');
       const countEl = document.getElementById('rep-ranking-total-titles');
-      countEl.textContent = `${videoRanking.length} título(s)`;
+      const container = document.getElementById('rep-videos-ranking');
+
+      countEl.textContent = videoRanking.length === 1 ? '1 título' : `${videoRanking.length} títulos`;
 
       if (videoRanking.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum desenho assistido neste período.</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">Nenhum vídeo registrado neste período.</p>`;
         return;
       }
 
       container.innerHTML = videoRanking
         .map((item, idx) => {
-          const pct = totalMins > 0 ? Math.round((item.minutes / totalMins) * 100) : 0;
-          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
-          const barFill = idx % 2 === 0 ? '#e86f51' : '#1e3a5f';
+          const pct = totalMins > 0 ? Math.round((item.minutos / totalMins) * 100) : 0;
+          const barColor = idx === 0 ? '#e86f51' : '#1e3a5f';
 
           return `
             <div class="space-y-1.5">
               <div class="flex items-center justify-between gap-2 text-xs">
                 <div class="flex items-center gap-2 min-w-0">
-                  <span class="w-6 text-center font-extrabold text-[#1e3a5f] shrink-0">${medal}</span>
-                  <span class="font-extrabold text-slate-900 truncate">${escapeHtml(item.title)}</span>
-                  <span class="text-[10px] font-bold text-slate-400 shrink-0">(${item.count}x)</span>
+                  <span class="font-extrabold text-[#1e3a5f] w-5 shrink-0">${idx + 1}º</span>
+                  <span class="font-bold text-slate-800 truncate">${escapeHtml(item.title)}</span>
+                  <span class="text-[10px] font-semibold text-slate-400 shrink-0">(${item.sessoes}x)</span>
                 </div>
-                <div class="shrink-0">
-                  <span class="font-extrabold text-[#e86f51]">${formatarMinutos(item.minutes)}</span>
-                  <span class="text-slate-400 font-semibold ml-1">(${pct}%)</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="font-extrabold text-slate-900">${formatarMinutos(item.minutos)}</span>
+                  <span class="text-[11px] font-bold text-slate-400 w-9 text-right">${pct}%</span>
                 </div>
               </div>
               <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${barFill};"></div>
+                <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${barColor};"></div>
               </div>
             </div>
           `;
@@ -2469,38 +2527,33 @@
     }
 
     function renderDetailedHistory(periodRecords) {
-      const container = document.getElementById('rep-detailed-history');
       const countEl = document.getElementById('rep-history-count');
-      countEl.textContent = `${periodRecords.length} registro(s)`;
+      const container = document.getElementById('rep-detailed-history');
+
+      countEl.textContent = periodRecords.length === 1 ? '1 registro' : `${periodRecords.length} registros`;
 
       if (periodRecords.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-5">Sem registros para exibir neste período.</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum registro encontrado para este período.</p>`;
         return;
       }
 
       container.innerHTML = periodRecords
         .map((rec) => {
-          const dateFormatted = parseLocalYMD(rec.data).toLocaleDateString('pt-BR', {
+          const isMae = rec.registradoPor === 'Mãe';
+          const dateLabel = parseLocalYMD(rec.data).toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
           });
-          const isMae = rec.registradoPor === 'Mãe';
 
           return `
-            <div class="py-3 flex items-center justify-between gap-2 text-xs">
-              <div class="min-w-0 pr-2">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-mono font-bold text-slate-400">${dateFormatted}</span>
-                  <span class="font-extrabold text-slate-900 truncate">${escapeHtml(rec.video)}</span>
-                </div>
-                <div class="mt-1">
-                  <span class="text-[10px] font-bold ${isMae ? 'text-[#e86f51]' : 'text-[#1e3a5f]'}">
-                    ${isMae ? '👩 Mãe' : '👨 Pai'}
-                  </span>
-                </div>
+            <div class="py-3 flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">${escapeHtml(rec.video)}</p>
+                <p class="text-[11px] font-semibold text-slate-400 mt-0.5">
+                  ${dateLabel} · ${isMae ? '👩 Mãe' : '👨 Pai'}
+                </p>
               </div>
-
-              <span class="font-extrabold text-[#1e3a5f] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
+              <span class="text-xs font-extrabold text-[#1e3a5f] bg-slate-100 px-2.5 py-1 rounded-xl shrink-0">
                 ${formatarMinutos(rec.minutos)}
               </span>
             </div>
@@ -2514,8 +2567,7 @@
         app: 'Controle de TV da Laís',
         exportedAt: new Date().toISOString(),
         familyCode: state.familyCode,
-        totalRecords: state.records.length,
-        records: state.records.map(({ _createdMs, ...clean }) => clean),
+        registros: state.records.map(({ _createdMs, pending, ...clean }) => clean),
       };
 
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -2528,11 +2580,11 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showToast('Backup JSON baixado!', '💾');
+      showToast('Backup JSON exportado!', '💾');
     };
 
     // =========================================================================
-    // 11. TOAST, MODAL CUSTOMIZADO E RENDERIZAÇÃO GERAL
+    // 11. TOAST, MODAL CUSTOMIZADO E INICIALIZAÇÃO DO APP
     // =========================================================================
     let toastTimeout = null;
     function showToast(message, icon = '✅') {
@@ -2547,7 +2599,7 @@
       toastTimeout = setTimeout(() => {
         container.classList.add('opacity-0', '-translate-y-4');
         container.classList.remove('opacity-100', 'translate-y-0');
-      }, 2700);
+      }, 2800);
     }
 
     function openModal({ title, bodyHtml, actions }) {
@@ -2576,24 +2628,34 @@
     };
 
     function renderAll() {
+      renderDailyRecords();
       renderVideoSuggestionChips();
-      updateMinutesCaption();
-      renderDailySummaryAndList();
+      renderQuickMinutesButtons();
       if (state.activeTab === 'relatorios') {
         renderReports();
       }
     }
 
-    // =========================================================================
-    // 12. INICIALIZAÇÃO DO APLICATIVO
-    // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('header-family-code').textContent = state.familyCode;
       updateProfileUI(false);
       syncDateUI();
+      renderVideoSuggestionChips();
+      renderQuickMinutesButtons();
       restoreTimerFromStorage();
       renderAll();
       initCloudSync();
+
+      // Reenvia automaticamente os registros offline assim que a internet voltar
+      window.addEventListener('online', () => {
+        flushOfflineQueue();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && navigator.onLine) {
+          flushOfflineQueue();
+        }
+      });
 
       // Fecha a lista de autocompletar ao tocar fora dos campos de vídeo
       document.addEventListener('click', (event) => {
